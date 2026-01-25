@@ -215,13 +215,13 @@ The Kiro CodeBuild Worker system integrates Kiro CLI with AWS CodeBuild to autom
 
 #### Acceptance Criteria
 
-1. THE repository SHALL provide comprehensive deployment documentation that guides users through the complete deployment process
-2. THE infrastructure SHALL be organized into independent stacks that can be deployed separately or sequentially for full deployment
+1. WHEN the repository is created, THEN the repository SHALL provide comprehensive deployment documentation that guides users through the complete deployment process
+2. WHEN designing infrastructure, THEN the infrastructure SHALL be organized into independent stacks that can be deployed separately or sequentially for full deployment
 3. WHEN deploying stacks, THEN each stack SHALL have clear dependencies documented if it requires other stacks to be deployed first
-4. THE deployment documentation SHALL specify the exact IAM permissions required for deployment using least-privilege principles
-5. THE required IAM permissions SHALL include only permissions that are actually used during deployment operations
-6. THE deployment documentation SHALL provide a sample IAM policy document that users can apply to their deployment credentials
+4. WHEN documenting deployment, THEN the deployment documentation SHALL specify the exact IAM permissions required for deployment using least-privilege principles
+5. WHEN defining IAM permissions, THEN the required IAM permissions SHALL include only permissions that are actually used during deployment operations
+6. WHEN documenting IAM requirements, THEN the deployment documentation SHALL provide a sample IAM policy document that users can apply to their deployment credentials
 7. WHEN users supply AWS credentials, THEN the deployment process SHALL validate that the credentials have sufficient permissions before attempting deployment
-8. THE deployment documentation SHALL include prerequisites, step-by-step instructions, verification steps, and troubleshooting guidance
+8. WHEN creating documentation, THEN the deployment documentation SHALL include prerequisites, step-by-step instructions, verification steps, and troubleshooting guidance
 9. WHEN a deployment fails due to insufficient permissions, THEN the error message SHALL clearly indicate which specific permission is missing
-10. THE repository SHALL include deployment scripts or tools that automate the deployment process across all stacks
+10. WHEN providing deployment tools, THEN the repository SHALL include deployment scripts or tools that automate the deployment process across all stacks
