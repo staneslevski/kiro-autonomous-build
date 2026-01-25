@@ -1,0 +1,77 @@
+{
+  "name": "kiro-codebuild-worker-steering",
+  "displayName": "Kiro CodeBuild Worker Steering",
+  "version": "1.0.0",
+  "description": "Centralized steering documentation for Kiro CodeBuild Worker projects including Git workflow, testing standards, code review guidelines, deployment practices, and TypeScript coding standards",
+  "author": "Kiro Platform Team",
+  "license": "MIT",
+  "keywords": [
+    "kiro",
+    "codebuild",
+    "steering",
+    "standards",
+    "testing",
+    "typescript",
+    "aws",
+    "ci-cd"
+  ],
+  "steeringFiles": [
+    {
+      "path": "steering/git-workflow.md",
+      "checksum": "sha256:814d88733724ff14ff8545d3c9b7d9c908bf066602a22d6b4c6d5b6e2e7fd1c4",
+      "required": true,
+      "description": "Git branching strategy, commit conventions, and pull request guidelines"
+    },
+    {
+      "path": "steering/testing-standards.md",
+      "checksum": "sha256:4adac2ee5fbbd1cc9181ff501a473c40d37caec06952752303ef109ee61ebe50",
+      "required": true,
+      "description": "Comprehensive testing requirements with 80% coverage minimum"
+    },
+    {
+      "path": "steering/code-review.md",
+      "checksum": "sha256:b1d704aca4c189b2f95e588885757afa0ff859f77fd298964297f27aa7eac486",
+      "required": false,
+      "description": "Best practices for conducting thorough code reviews"
+    },
+    {
+      "path": "steering/deployment-practices.md",
+      "checksum": "sha256:4bf1fe9182473104619a4ce5be3133cea1ce331091fec4544474d5817e37af8c",
+      "required": false,
+      "description": "Infrastructure deployment and validation procedures"
+    },
+    {
+      "path": "steering/typescript-standards.md",
+      "checksum": "sha256:98f12633b1f109c2935fb7f89548fe1f1260f9cc780a6569247bce17e60a2cf0",
+      "required": true,
+      "description": "TypeScript coding conventions and best practices"
+    }
+  ],
+  "updateNotificationUrl": "https://github.com/kiro-platform/kiro-codebuild-worker-power/releases",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kiro-platform/kiro-codebuild-worker-power.git"
+  },
+  "homepage": "https://github.com/kiro-platform/kiro-codebuild-worker-power",
+  "bugs": {
+    "url": "https://github.com/kiro-platform/kiro-codebuild-worker-power/issues"
+  },
+  "compatibility": {
+    "kiroVersion": ">=1.0.0",
+    "nodeVersion": ">=18.0.0"
+  },
+  "changelog": [
+    {
+      "version": "1.0.0",
+      "date": "2026-01-25",
+      "changes": [
+        "Initial release with core steering files",
+        "Git workflow standards",
+        "Testing standards with 80% coverage requirement",
+        "Code review guidelines",
+        "Deployment practices",
+        "TypeScript coding standards"
+      ]
+    }
+  ]
+}

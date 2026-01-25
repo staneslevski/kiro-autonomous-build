@@ -104,7 +104,7 @@
 ## Phase 2: Kiro Power and Steering Synchronization
 
 ### 6. Kiro Power Structure
-- [ ] 6.1 Create Kiro Power directory structure
+- [x] 6.1 Create Kiro Power directory structure
   - **Requirements**: Requirement 13 (Kiro Power for Centralized Steering)
   - **Details**: Create kiro-codebuild-worker-power/ with POWER.md, manifest.json, and steering/ directory
   
@@ -116,7 +116,7 @@
   - **Requirements**: Requirement 13.3 (Kiro Power for Centralized Steering)
   - **Details**: Define manifest format with version (1.0.0), steering file paths, SHA-256 checksums, required flags
   
-- [ ] 6.4 Write POWER.md documentation
+- [x] 6.4 Write POWER.md documentation
   - **Requirements**: Requirement 13.4 (Kiro Power for Centralized Steering)
   - **Details**: Document the Kiro Power purpose, installation instructions, usage guidelines, version management
 
