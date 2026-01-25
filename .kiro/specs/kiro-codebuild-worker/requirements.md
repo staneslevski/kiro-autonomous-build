@@ -26,15 +26,18 @@ The Kiro CodeBuild Worker system integrates Kiro CLI with AWS CodeBuild to autom
 
 ### Requirement 1: Git Branch Management
 
-**User Story:** As a developer, I want Kiro Workers to operate on feature branches, so that work is isolated and can be reviewed before merging to main.
+**User Story:** As a developer, I want Kiro Workers to operate on existing feature branches that contain spec files, so that work is performed on the correct branch with requirements, design, and tasks already defined.
 
 #### Acceptance Criteria
 
-1. WHEN a Kiro Worker starts, THEN the Kiro_Worker SHALL check out the Main_Branch from the repository
-2. WHEN the Main_Branch is checked out, THEN the Kiro_Worker SHALL create a new Feature_Branch with a unique identifier
-3. WHEN a Feature_Branch is created, THEN the Kiro_Worker SHALL switch to that Feature_Branch for all subsequent operations
-4. WHEN work is completed, THEN the Kiro_Worker SHALL commit all changes to the Feature_Branch
-5. WHEN changes are committed, THEN the Kiro_Worker SHALL push the Feature_Branch to the remote repository
+1. WHEN a Kiro Worker starts with a work item, THEN the Kiro_Worker SHALL identify the Feature_Branch name from the work item metadata
+2. WHEN the Feature_Branch name is identified, THEN the Kiro_Worker SHALL verify that a branch with that name exists in the repository
+3. WHEN the Feature_Branch exists, THEN the Kiro_Worker SHALL check out that Feature_Branch
+4. WHEN the Feature_Branch is checked out, THEN the Kiro_Worker SHALL verify that a spec folder exists matching the branch name in .kiro/specs/
+5. WHEN the spec folder is verified, THEN the Kiro_Worker SHALL confirm that requirements.md, design.md, and tasks.md files exist in that folder
+6. WHEN the branch or spec files do not exist, THEN the Kiro_Worker SHALL fail with a clear error message indicating what is missing
+7. WHEN work is completed, THEN the Kiro_Worker SHALL commit all changes to the Feature_Branch
+8. WHEN changes are committed, THEN the Kiro_Worker SHALL push the Feature_Branch to the remote repository
 
 ### Requirement 2: Pull Request Creation
 
@@ -189,10 +192,10 @@ The Kiro CodeBuild Worker system integrates Kiro CLI with AWS CodeBuild to autom
 #### Acceptance Criteria
 
 1. WHEN a Kiro_Worker starts, THEN the Kiro_Worker SHALL verify the repository contains required steering files
-2. THE Kiro_Worker SHALL check if steering files are up-to-date with the centralized Kiro Power version
+2. WHEN a Kiro_Worker starts, THEN the Kiro_Worker SHALL check if steering files are up-to-date with the centralized Kiro Power version
 3. WHEN steering files are missing or outdated, THEN the Kiro_Worker SHALL synchronize them from the Kiro Power
 4. WHEN steering files are synchronized, THEN the Kiro_Worker SHALL commit the updates to the Feature_Branch
-5. THE Kiro_Worker SHALL log which steering files were added or updated during synchronization
+5. WHEN steering files are synchronized, THEN the Kiro_Worker SHALL log which steering files were added or updated during synchronization
 
 ### Requirement 15: Infrastructure Monitoring and Alerting
 
@@ -225,3 +228,77 @@ The Kiro CodeBuild Worker system integrates Kiro CLI with AWS CodeBuild to autom
 8. WHEN creating documentation, THEN the deployment documentation SHALL include prerequisites, step-by-step instructions, verification steps, and troubleshooting guidance
 9. WHEN a deployment fails due to insufficient permissions, THEN the error message SHALL clearly indicate which specific permission is missing
 10. WHEN providing deployment tools, THEN the repository SHALL include deployment scripts or tools that automate the deployment process across all stacks
+
+### Requirement 17: GitHub Project Integration
+
+**User Story:** As a project manager, I want the system to monitor GitHub project work items in a specific status, so that work can be automatically picked up and executed by Kiro Workers.
+
+#### Acceptance Criteria
+
+1. WHEN the system is configured, THEN the system SHALL accept configuration parameters for GitHub organization, repository, project number, and target status column name
+2. WHEN the system queries GitHub, THEN the system SHALL use the GitHub Projects API to retrieve work items from the specified project
+3. WHEN retrieving work items, THEN the system SHALL filter for items in the configured status column (e.g., "For Implementation")
+4. WHEN a work item is found, THEN the system SHALL extract the work item title, description, and associated branch name from the work item metadata
+5. WHEN extracting branch information, THEN the system SHALL verify that the branch name matches a folder in .kiro/specs/ and matches the title of an existing pull request
+6. WHEN authentication is required, THEN the system SHALL retrieve GitHub API credentials from AWS Secrets Manager or AWS Systems Manager Parameter Store
+7. WHEN API rate limits are encountered, THEN the system SHALL respect GitHub API rate limits and implement appropriate backoff strategies
+8. WHEN API errors occur, THEN the system SHALL log detailed error information and retry with exponential backoff
+
+### Requirement 18: Scheduled Work Item Processing
+
+**User Story:** As a system operator, I want the system to check for work items on a configurable schedule, so that work is processed automatically without manual intervention.
+
+#### Acceptance Criteria
+
+1. WHEN the system is deployed, THEN the system SHALL implement a scheduled trigger mechanism using AWS EventBridge or CloudWatch Events
+2. WHEN configuring the schedule, THEN the system SHALL accept a cron expression or rate expression to define the polling frequency
+3. WHEN the schedule triggers, THEN the system SHALL query the GitHub project for work items in the target status
+4. WHEN work items are found, THEN the system SHALL queue them for processing by Kiro Workers
+5. WHEN no work items are found, THEN the system SHALL log that no work is available and wait for the next scheduled trigger
+6. WHEN the schedule is modified, THEN the system SHALL apply the new schedule without requiring redeployment of the entire infrastructure
+7. WHEN scheduling errors occur, THEN the system SHALL log the error and continue with the next scheduled execution
+
+### Requirement 19: Single Work Item Execution
+
+**User Story:** As a system architect, I want the system to process only one work item at a time, so that resources are not overcommitted and work is completed sequentially.
+
+#### Acceptance Criteria
+
+1. WHEN multiple work items are available, THEN the system SHALL process only one work item at a time
+2. WHEN a work item is being processed, THEN the system SHALL prevent other work items from starting until the current work item completes
+3. WHEN implementing concurrency control, THEN the system SHALL use a locking mechanism such as DynamoDB conditional writes or SQS FIFO queues to ensure single execution
+4. WHEN a work item starts processing, THEN the system SHALL mark the work item as "in progress" to prevent duplicate processing
+5. WHEN a work item completes successfully, THEN the system SHALL mark the work item as complete and allow the next work item to start
+6. WHEN a work item fails, THEN the system SHALL mark the work item as failed and allow the next work item to start
+7. WHEN the system restarts or crashes during work item processing, THEN the system SHALL detect incomplete work items and handle them appropriately (retry or mark as failed)
+8. WHEN checking for available work, THEN the system SHALL prioritize work items by creation date or a configured priority field
+
+### Requirement 20: Comprehensive Testing and Code Coverage
+
+**User Story:** As a software engineer, I want strict testing requirements enforced throughout development, so that code quality is maintained and bugs are caught early.
+
+#### Acceptance Criteria
+
+1. WHEN implementing any component, class, or function, THEN the developer MUST write comprehensive unit tests that achieve at least 80% code coverage for that component
+2. WHEN implementing any component, THEN the developer MUST test all success paths, error conditions, edge cases, and boundary conditions
+3. WHEN tests are written, THEN ALL tests MUST pass before any task can be marked as complete
+4. WHEN tests fail, THEN the developer MUST fix the implementation code or the test until all tests pass - NO EXCEPTIONS
+5. WHEN code coverage is below 80%, THEN the developer MUST write additional tests to achieve the minimum threshold before completing the task
+6. WHEN writing tests, THEN the developer MUST NOT skip tests using `.skip()`, `.todo()`, or similar mechanisms
+7. WHEN tests fail, THEN the developer MUST NOT comment out failing tests or disable test execution
+8. WHEN tests fail, THEN the developer MUST NOT remove or delete failing tests
+9. WHEN implementing features, THEN the developer MUST use the testing framework (Vitest) configured with coverage thresholds that enforce the 80% minimum
+10. WHEN running the test suite, THEN the build MUST fail if any tests fail or if coverage is below 80%
+11. WHEN completing any task, THEN the developer MUST verify that `npm test` passes with 100% test success rate
+12. WHEN completing any task, THEN the developer MUST verify that `npm run test:coverage` shows at least 80% coverage for lines, functions, branches, and statements
+13. WHEN reviewing code, THEN reviewers MUST verify that all tests pass and coverage requirements are met before approving pull requests
+14. WHEN CI/CD pipelines run, THEN the pipeline MUST fail if tests fail or coverage is below 80%
+
+**CRITICAL RULES (NON-NEGOTIABLE)**:
+- ALL TESTS MUST PASS - No exceptions, no compromises
+- MINIMUM 80% CODE COVERAGE - For all components, classes, and functions
+- DO NOT SKIP TESTS - Never use test skipping mechanisms
+- DO NOT IGNORE TESTS - Never comment out failing tests
+- DO NOT DISABLE TESTS - Never remove or disable test execution
+- FIX FAILING TESTS - Always fix the code or test until all tests pass
+- NO TASK IS COMPLETE - Until all tests pass with ≥80% coverage
