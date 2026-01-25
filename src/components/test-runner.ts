@@ -30,14 +30,17 @@ export class TestRunnerImpl implements TestRunner {
   private readonly repoPath: string;
   private testResult: TestResult | null = null;
   private coverageResult: CoverageResult | null = null;
+  protected execAsync: (command: string, options?: any) => Promise<{ stdout: string; stderr: string }>;
 
   /**
    * Creates a new TestRunner instance
    * 
    * @param repoPath - Path to the repository root
+   * @param execFn - Optional exec function for testing (defaults to promisified exec)
    */
-  constructor(repoPath: string) {
+  constructor(repoPath: string, execFn?: (command: string, options?: any) => Promise<{ stdout: string; stderr: string }>) {
     this.repoPath = repoPath;
+    this.execAsync = execFn || execAsync;
   }
 
   /**
@@ -56,7 +59,7 @@ export class TestRunnerImpl implements TestRunner {
     });
 
     try {
-      const { stdout, stderr } = await execAsync(testCommand, {
+      const { stdout, stderr } = await this.execAsync(testCommand, {
         cwd: this.repoPath,
         maxBuffer: 10 * 1024 * 1024, // 10MB buffer for large test outputs
         env: {

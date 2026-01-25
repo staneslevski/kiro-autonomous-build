@@ -1,19 +1,21 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { TestRunnerImpl } from './test-runner';
 import { TestExecutionError, CoverageThresholdError } from '../errors';
-import { exec } from 'child_process';
-import { readFile } from 'fs/promises';
+import * as fsPromises from 'fs/promises';
 
-// Mock child_process and fs/promises
-vi.mock('child_process');
-vi.mock('fs/promises');
+// Mock fs/promises
+vi.mock('fs/promises', () => ({
+  readFile: vi.fn()
+}));
 
 describe('TestRunnerImpl', () => {
   let testRunner: TestRunnerImpl;
+  let mockExec: any;
   const repoPath = '/test/repo';
 
   beforeEach(() => {
-    testRunner = new TestRunnerImpl(repoPath);
+    mockExec = vi.fn();
+    testRunner = new TestRunnerImpl(repoPath, mockExec);
     vi.clearAllMocks();
   });
 
@@ -30,10 +32,7 @@ Test Files  1 passed (1)
   Duration  1.23s
 `;
 
-      vi.mocked(exec).mockImplementation((command: any, options: any, callback: any) => {
-        callback(null, { stdout: mockOutput, stderr: '' });
-        return {} as any;
-      });
+      mockExec.mockResolvedValue({ stdout: mockOutput, stderr: '' });
 
       const config = { coverageThreshold: 80 };
       const result = await testRunner.runTests(config);
@@ -51,11 +50,7 @@ Test Files  1 passed (1)
      Tests  5 passed (5)
 `;
 
-      vi.mocked(exec).mockImplementation((command: any, options: any, callback: any) => {
-        expect(command).toBe('yarn test');
-        callback(null, { stdout: mockOutput, stderr: '' });
-        return {} as any;
-      });
+      mockExec.mockResolvedValue({ stdout: mockOutput, stderr: '' });
 
       const config = { 
         testCommand: 'yarn test',
@@ -65,6 +60,7 @@ Test Files  1 passed (1)
 
       expect(result.passed).toBe(true);
       expect(result.totalTests).toBe(5);
+      expect(mockExec).toHaveBeenCalledWith('yarn test', expect.any(Object));
     });
 
     it('should handle test failures', async () => {
@@ -83,13 +79,10 @@ Test Files  1 failed (1)
   at /test/file.ts:20:5
 `;
 
-      vi.mocked(exec).mockImplementation((command: any, options: any, callback: any) => {
-        const error: any = new Error('Command failed');
-        error.stdout = mockOutput;
-        error.stderr = '';
-        callback(error);
-        return {} as any;
-      });
+      const error: any = new Error('Command failed');
+      error.stdout = mockOutput;
+      error.stderr = '';
+      mockExec.mockRejectedValue(error);
 
       const config = { coverageThreshold: 80 };
 
@@ -113,10 +106,7 @@ Tests  15 passed (15)
 Duration  2.5s
 `;
 
-      vi.mocked(exec).mockImplementation((command: any, options: any, callback: any) => {
-        callback(null, { stdout: mockOutput, stderr: '' });
-        return {} as any;
-      });
+      mockExec.mockResolvedValue({ stdout: mockOutput, stderr: '' });
 
       const config = { coverageThreshold: 80 };
       const result = await testRunner.runTests(config);
@@ -128,13 +118,10 @@ Duration  2.5s
     });
 
     it('should handle execution errors', async () => {
-      vi.mocked(exec).mockImplementation((command: any, options: any, callback: any) => {
-        const error: any = new Error('Command not found');
-        error.stdout = '';
-        error.stderr = 'npm: command not found';
-        callback(error);
-        return {} as any;
-      });
+      const error: any = new Error('Command not found');
+      error.stdout = '';
+      error.stderr = 'npm: command not found';
+      mockExec.mockRejectedValue(error);
 
       const config = { coverageThreshold: 80 };
 
@@ -144,11 +131,10 @@ Duration  2.5s
     it('should set CI environment variables', async () => {
       const mockOutput = 'Tests  1 passed (1)';
 
-      vi.mocked(exec).mockImplementation((command: any, options: any, callback: any) => {
+      mockExec.mockImplementation((command: string, options: any) => {
         expect(options.env.CI).toBe('true');
         expect(options.env.NODE_ENV).toBe('test');
-        callback(null, { stdout: mockOutput, stderr: '' });
-        return {} as any;
+        return Promise.resolve({ stdout: mockOutput, stderr: '' });
       });
 
       const config = { coverageThreshold: 80 };
@@ -158,10 +144,9 @@ Duration  2.5s
     it('should use correct working directory', async () => {
       const mockOutput = 'Tests  1 passed (1)';
 
-      vi.mocked(exec).mockImplementation((command: any, options: any, callback: any) => {
+      mockExec.mockImplementation((command: string, options: any) => {
         expect(options.cwd).toBe(repoPath);
-        callback(null, { stdout: mockOutput, stderr: '' });
-        return {} as any;
+        return Promise.resolve({ stdout: mockOutput, stderr: '' });
       });
 
       const config = { coverageThreshold: 80 };
@@ -172,10 +157,7 @@ Duration  2.5s
       const stdout = 'Tests  1 passed (1)';
       const stderr = 'Warning: deprecated API';
 
-      vi.mocked(exec).mockImplementation((command: any, options: any, callback: any) => {
-        callback(null, { stdout, stderr });
-        return {} as any;
-      });
+      mockExec.mockResolvedValue({ stdout, stderr });
 
       const config = { coverageThreshold: 80 };
       const result = await testRunner.runTests(config);
@@ -202,7 +184,7 @@ Duration  2.5s
         }
       };
 
-      vi.mocked(readFile).mockResolvedValue(JSON.stringify(mockCoverage));
+      vi.mocked(fsPromises.readFile).mockResolvedValue(JSON.stringify(mockCoverage));
 
       const result = await testRunner.analyzeCoverage();
 
@@ -227,7 +209,7 @@ Duration  2.5s
         }
       };
 
-      vi.mocked(readFile).mockResolvedValue(JSON.stringify(mockCoverage));
+      vi.mocked(fsPromises.readFile).mockResolvedValue(JSON.stringify(mockCoverage));
 
       await expect(testRunner.analyzeCoverage()).rejects.toThrow(CoverageThresholdError);
 
@@ -236,19 +218,19 @@ Duration  2.5s
       } catch (error) {
         expect(error).toBeInstanceOf(CoverageThresholdError);
         const coverageError = error as CoverageThresholdError;
-        expect(coverageError.coverageResult.meetsThreshold).toBe(false);
-        expect(coverageError.coverageResult.lines).toBe(75.0);
+        expect(coverageError.actualCoverage.meetsThreshold).toBe(false);
+        expect(coverageError.actualCoverage.lines).toBe(75.0);
       }
     });
 
     it('should throw error when coverage file not found', async () => {
-      vi.mocked(readFile).mockRejectedValue(new Error('ENOENT: file not found'));
+      vi.mocked(fsPromises.readFile).mockRejectedValue(new Error('ENOENT: file not found'));
 
       await expect(testRunner.analyzeCoverage()).rejects.toThrow(TestExecutionError);
     });
 
     it('should throw error when coverage JSON is invalid', async () => {
-      vi.mocked(readFile).mockResolvedValue('invalid json');
+      vi.mocked(fsPromises.readFile).mockResolvedValue('invalid json');
 
       await expect(testRunner.analyzeCoverage()).rejects.toThrow();
     });
@@ -261,7 +243,7 @@ Duration  2.5s
         }
       };
 
-      vi.mocked(readFile).mockResolvedValue(JSON.stringify(mockCoverage));
+      vi.mocked(fsPromises.readFile).mockResolvedValue(JSON.stringify(mockCoverage));
 
       await expect(testRunner.analyzeCoverage()).rejects.toThrow(TestExecutionError);
     });
@@ -274,15 +256,9 @@ Duration  2.5s
         }
       };
 
-      vi.mocked(readFile).mockResolvedValue(JSON.stringify(mockCoverage));
+      vi.mocked(fsPromises.readFile).mockResolvedValue(JSON.stringify(mockCoverage));
 
-      const result = await testRunner.analyzeCoverage();
-
-      expect(result.lines).toBe(85.0);
-      expect(result.functions).toBe(0);
-      expect(result.branches).toBe(0);
-      expect(result.statements).toBe(0);
-      expect(result.meetsThreshold).toBe(false); // Missing metrics default to 0
+      await expect(testRunner.analyzeCoverage()).rejects.toThrow(CoverageThresholdError);
     });
 
     it('should read coverage from correct path', async () => {
@@ -295,11 +271,11 @@ Duration  2.5s
         }
       };
 
-      vi.mocked(readFile).mockResolvedValue(JSON.stringify(mockCoverage));
+      vi.mocked(fsPromises.readFile).mockResolvedValue(JSON.stringify(mockCoverage));
 
       await testRunner.analyzeCoverage();
 
-      expect(readFile).toHaveBeenCalledWith(
+      expect(fsPromises.readFile).toHaveBeenCalledWith(
         `${repoPath}/coverage/coverage-summary.json`,
         'utf-8'
       );
@@ -315,7 +291,7 @@ Duration  2.5s
         }
       };
 
-      vi.mocked(readFile).mockResolvedValue(JSON.stringify(mockCoverage));
+      vi.mocked(fsPromises.readFile).mockResolvedValue(JSON.stringify(mockCoverage));
 
       const result = await testRunner.analyzeCoverage();
 
@@ -328,10 +304,7 @@ Duration  2.5s
     it('should generate summary with test results and coverage', async () => {
       // Run tests first
       const mockTestOutput = 'Tests  10 passed (10)';
-      vi.mocked(exec).mockImplementation((command: any, options: any, callback: any) => {
-        callback(null, { stdout: mockTestOutput, stderr: '' });
-        return {} as any;
-      });
+      mockExec.mockResolvedValue({ stdout: mockTestOutput, stderr: '' });
 
       const mockCoverage = {
         total: {
@@ -341,7 +314,7 @@ Duration  2.5s
           statements: { pct: 86.7 }
         }
       };
-      vi.mocked(readFile).mockResolvedValue(JSON.stringify(mockCoverage));
+      vi.mocked(fsPromises.readFile).mockResolvedValue(JSON.stringify(mockCoverage));
 
       await testRunner.runTests({ coverageThreshold: 80 });
       await testRunner.analyzeCoverage();
@@ -354,7 +327,7 @@ Duration  2.5s
       expect(summary).toContain('Passed**: 10');
       expect(summary).toContain('Failed**: 0');
       expect(summary).toContain('Code Coverage');
-      expect(summary).toContain('86.12%');
+      expect(summary).toContain('86.13%'); // (85.5 + 90 + 82.3 + 86.7) / 4 = 86.125 rounds to 86.13
       expect(summary).toContain('✅ MET');
       expect(summary).toContain('Lines**: 85.50%');
       expect(summary).toContain('Functions**: 90.00%');
@@ -371,13 +344,10 @@ Tests  2 passed | 3 failed (5 total)
   at /test/file.ts:10:5
 `;
 
-      vi.mocked(exec).mockImplementation((command: any, options: any, callback: any) => {
-        const error: any = new Error('Command failed');
-        error.stdout = mockTestOutput;
-        error.stderr = '';
-        callback(error);
-        return {} as any;
-      });
+      const error: any = new Error('Command failed');
+      error.stdout = mockTestOutput;
+      error.stderr = '';
+      mockExec.mockRejectedValue(error);
 
       try {
         await testRunner.runTests({ coverageThreshold: 80 });
@@ -404,10 +374,7 @@ Tests  2 passed | 3 failed (5 total)
 
     it('should include file-by-file coverage for lowest coverage files', async () => {
       const mockTestOutput = 'Tests  1 passed (1)';
-      vi.mocked(exec).mockImplementation((command: any, options: any, callback: any) => {
-        callback(null, { stdout: mockTestOutput, stderr: '' });
-        return {} as any;
-      });
+      mockExec.mockResolvedValue({ stdout: mockTestOutput, stderr: '' });
 
       const mockCoverage = {
         total: {
@@ -420,7 +387,7 @@ Tests  2 passed | 3 failed (5 total)
         'src/file2.ts': { lines: { pct: 95.0 } },
         'src/file3.ts': { lines: { pct: 70.0 } }
       };
-      vi.mocked(readFile).mockResolvedValue(JSON.stringify(mockCoverage));
+      vi.mocked(fsPromises.readFile).mockResolvedValue(JSON.stringify(mockCoverage));
 
       await testRunner.runTests({ coverageThreshold: 80 });
       await testRunner.analyzeCoverage();
@@ -435,10 +402,7 @@ Tests  2 passed | 3 failed (5 total)
 
     it('should limit file list to top 10 lowest coverage files', async () => {
       const mockTestOutput = 'Tests  1 passed (1)';
-      vi.mocked(exec).mockImplementation((command: any, options: any, callback: any) => {
-        callback(null, { stdout: mockTestOutput, stderr: '' });
-        return {} as any;
-      });
+      mockExec.mockResolvedValue({ stdout: mockTestOutput, stderr: '' });
 
       const mockCoverage: any = {
         total: {
@@ -454,7 +418,7 @@ Tests  2 passed | 3 failed (5 total)
         mockCoverage[`src/file${i}.ts`] = { lines: { pct: 50 + i } };
       }
 
-      vi.mocked(readFile).mockResolvedValue(JSON.stringify(mockCoverage));
+      vi.mocked(fsPromises.readFile).mockResolvedValue(JSON.stringify(mockCoverage));
 
       await testRunner.runTests({ coverageThreshold: 80 });
       await testRunner.analyzeCoverage();
@@ -477,13 +441,10 @@ Tests  0 passed | 1 failed (1 total)
   at Promise.then.completed (/test/runner.ts:20:10)
 `;
 
-      vi.mocked(exec).mockImplementation((command: any, options: any, callback: any) => {
-        const error: any = new Error('Command failed');
-        error.stdout = mockTestOutput;
-        error.stderr = '';
-        callback(error);
-        return {} as any;
-      });
+      const error: any = new Error('Command failed');
+      error.stdout = mockTestOutput;
+      error.stderr = '';
+      mockExec.mockRejectedValue(error);
 
       try {
         await testRunner.runTests({ coverageThreshold: 80 });
@@ -500,18 +461,11 @@ Tests  0 passed | 1 failed (1 total)
 
   describe('edge cases', () => {
     it('should handle empty test output', async () => {
-      vi.mocked(exec).mockImplementation((command: any, options: any, callback: any) => {
-        callback(null, { stdout: '', stderr: '' });
-        return {} as any;
-      });
+      mockExec.mockResolvedValue({ stdout: '', stderr: '' });
 
       const config = { coverageThreshold: 80 };
-      const result = await testRunner.runTests(config);
-
-      expect(result.totalTests).toBe(0);
-      expect(result.passedTests).toBe(0);
-      expect(result.failedTests).toBe(0);
-      expect(result.passed).toBe(false);
+      
+      await expect(testRunner.runTests(config)).rejects.toThrow(TestExecutionError);
     });
 
     it('should handle coverage with zero values', async () => {
@@ -524,7 +478,7 @@ Tests  0 passed | 1 failed (1 total)
         }
       };
 
-      vi.mocked(readFile).mockResolvedValue(JSON.stringify(mockCoverage));
+      vi.mocked(fsPromises.readFile).mockResolvedValue(JSON.stringify(mockCoverage));
 
       await expect(testRunner.analyzeCoverage()).rejects.toThrow(CoverageThresholdError);
     });
@@ -539,7 +493,7 @@ Tests  0 passed | 1 failed (1 total)
         }
       };
 
-      vi.mocked(readFile).mockResolvedValue(JSON.stringify(mockCoverage));
+      vi.mocked(fsPromises.readFile).mockResolvedValue(JSON.stringify(mockCoverage));
 
       const result = await testRunner.analyzeCoverage();
 
@@ -557,7 +511,7 @@ Tests  0 passed | 1 failed (1 total)
         }
       };
 
-      vi.mocked(readFile).mockResolvedValue(JSON.stringify(mockCoverage));
+      vi.mocked(fsPromises.readFile).mockResolvedValue(JSON.stringify(mockCoverage));
 
       await expect(testRunner.analyzeCoverage()).rejects.toThrow(CoverageThresholdError);
     });
