@@ -28,8 +28,9 @@
     "@aws-sdk/client-s3": "^3.490.0",
     "@aws-sdk/client-secrets-manager": "^3.490.0",
     "@aws-sdk/client-ssm": "^3.490.0",
-    "@octokit/rest": "^20.0.2",
+    "@aws-sdk/util-dynamodb": "^3.975.0",
     "@octokit/graphql": "^7.0.2",
+    "@octokit/rest": "^20.0.2",
     "simple-git": "^3.22.0"
   },
   "devDependencies": {
