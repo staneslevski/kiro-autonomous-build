@@ -1,0 +1,22 @@
+{
+  "name": "kiro-codebuild-worker",
+  "version": "1.0.0",
+  "description": "Automated coding agent system integrating Kiro CLI with AWS CodeBuild",
+  "status": "in-progress",
+  "created": "2026-01-25",
+  "updated": "2026-01-25",
+  "files": {
+    "requirements": "requirements.md",
+    "design": "design.md",
+    "tasks": "tasks.md"
+  },
+  "phases": {
+    "current": "Phase 1",
+    "total": 9
+  },
+  "progress": {
+    "completed": 11,
+    "total": 115,
+    "percentage": 9.6
+  }
+}

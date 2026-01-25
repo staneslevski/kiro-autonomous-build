@@ -1,0 +1,48 @@
+version: 0.2
+
+env:
+  variables:
+    ENVIRONMENT: "test"
+    BRANCH_NAME: ""
+    SPEC_PATH: ""
+    SPEC_TASK_ID: ""
+    COVERAGE_THRESHOLD: "80"
+  parameter-store:
+    GIT_TOKEN: "/kiro-worker/git-token"
+    API_TOKEN: "/kiro-worker/api-token"
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 18
+    commands:
+      - echo "Installing dependencies"
+      - npm ci
+      - npm install -g kiro-cli
+  
+  pre_build:
+    commands:
+      - echo "Initializing Kiro Worker"
+      - echo "Environment: $ENVIRONMENT"
+      - echo "Branch: $BRANCH_NAME"
+      - echo "Spec Path: $SPEC_PATH"
+      - echo "Task ID: $SPEC_TASK_ID"
+  
+  build:
+    commands:
+      - echo "Executing Kiro Worker"
+      - node dist/index.js
+  
+  post_build:
+    commands:
+      - echo "Build completed"
+      - echo "Exit code: $CODEBUILD_BUILD_SUCCEEDING"
+
+artifacts:
+  files:
+    - '**/*'
+  name: kiro-worker-artifacts-$CODEBUILD_BUILD_NUMBER
+
+cache:
+  paths:
+    - 'node_modules/**/*'
