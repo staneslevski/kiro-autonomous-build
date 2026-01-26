@@ -1,0 +1,38 @@
+{
+  "name": "kiro-codebuild-worker-infrastructure",
+  "version": "1.0.0",
+  "description": "AWS CDK infrastructure for Kiro CodeBuild Worker",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "cdk": "cdk",
+    "synth": "cdk synth",
+    "deploy": "cdk deploy",
+    "diff": "cdk diff",
+    "destroy": "cdk destroy"
+  },
+  "keywords": [
+    "aws",
+    "cdk",
+    "infrastructure",
+    "kiro",
+    "codebuild"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^18.0.0",
+    "@vitest/coverage-v8": "^1.0.0",
+    "aws-cdk": "^2.100.0",
+    "typescript": "^5.0.0",
+    "vitest": "^1.0.0"
+  },
+  "dependencies": {
+    "aws-cdk-lib": "^2.100.0",
+    "constructs": "^10.0.0"
+  }
+}

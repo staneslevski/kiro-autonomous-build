@@ -279,7 +279,7 @@
   - **Requirements**: Requirement 9.4 (Build Artifacts), Requirement 19 (Single Work Item Execution)
   - **Details**: Create lib/stacks/core-infrastructure-stack.ts with S3 buckets for artifacts (encryption, versioning, lifecycle rules), CloudWatch Log Groups, DynamoDB table for work item locking (lockKey PK, TTL on expiresAt)
   
-- [ ] 17.2 Implement IAM roles for CodeBuild
+- [x] 17.2 Implement IAM roles for CodeBuild
   - **Requirements**: Requirement 7.3 (Credential and Secret Management), Requirement 16.5 (Deployment Strategy)
   - **Details**: Create IAM roles with least-privilege permissions for Secrets Manager, S3, CloudWatch Logs, Parameter Store access
   
