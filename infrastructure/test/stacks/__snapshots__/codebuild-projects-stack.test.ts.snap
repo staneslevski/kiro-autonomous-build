@@ -1,0 +1,499 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`CodeBuildProjectsStack > Snapshot Tests > should match snapshot for production environment 1`] = `
+{
+  "Outputs": {
+    "BuildRoleArn": {
+      "Description": "ARN of the IAM role used by CodeBuild",
+      "Export": {
+        "Name": "ProdStack-BuildRoleArn",
+      },
+      "Value": "arn:aws:iam::123456789012:role/kiro-worker-test-codebuild-role",
+    },
+    "ExportsOutputRefWorkerProject45F2BEBF8D436BB8": {
+      "Export": {
+        "Name": "ProdStack:ExportsOutputRefWorkerProject45F2BEBF8D436BB8",
+      },
+      "Value": {
+        "Ref": "WorkerProject45F2BEBF",
+      },
+    },
+    "ProjectArn": {
+      "Description": "ARN of the CodeBuild project",
+      "Export": {
+        "Name": "ProdStack-ProjectArn",
+      },
+      "Value": {
+        "Fn::GetAtt": [
+          "WorkerProject45F2BEBF",
+          "Arn",
+        ],
+      },
+    },
+    "ProjectName": {
+      "Description": "Name of the CodeBuild project",
+      "Export": {
+        "Name": "ProdStack-ProjectName",
+      },
+      "Value": {
+        "Ref": "WorkerProject45F2BEBF",
+      },
+    },
+  },
+  "Parameters": {
+    "BootstrapVersion": {
+      "Default": "/cdk-bootstrap/hnb659fds/version",
+      "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+  },
+  "Resources": {
+    "WorkerProject45F2BEBF": {
+      "Properties": {
+        "Artifacts": {
+          "Location": "kiro-worker-test-artifacts",
+          "Name": "artifacts",
+          "NamespaceType": "BUILD_ID",
+          "Packaging": "NONE",
+          "Path": "production/",
+          "Type": "S3",
+        },
+        "BadgeEnabled": false,
+        "Cache": {
+          "Modes": [
+            "LOCAL_SOURCE_CACHE",
+            "LOCAL_CUSTOM_CACHE",
+          ],
+          "Type": "LOCAL",
+        },
+        "ConcurrentBuildLimit": 1,
+        "Description": "Kiro Worker CodeBuild project for production environment",
+        "EncryptionKey": "alias/aws/s3",
+        "Environment": {
+          "ComputeType": "BUILD_GENERAL1_LARGE",
+          "EnvironmentVariables": [
+            {
+              "Name": "ENVIRONMENT",
+              "Type": "PLAINTEXT",
+              "Value": "production",
+            },
+            {
+              "Name": "COVERAGE_THRESHOLD",
+              "Type": "PLAINTEXT",
+              "Value": "80",
+            },
+            {
+              "Name": "BRANCH_NAME",
+              "Type": "PLAINTEXT",
+              "Value": "",
+            },
+            {
+              "Name": "SPEC_PATH",
+              "Type": "PLAINTEXT",
+              "Value": "",
+            },
+            {
+              "Name": "WORK_ITEM_ID",
+              "Type": "PLAINTEXT",
+              "Value": "",
+            },
+          ],
+          "Image": "aws/codebuild/standard:7.0",
+          "ImagePullCredentialsType": "CODEBUILD",
+          "PrivilegedMode": false,
+          "Type": "LINUX_CONTAINER",
+        },
+        "LogsConfig": {
+          "CloudWatchLogs": {
+            "GroupName": "/aws/codebuild/kiro-worker-test",
+            "Status": "ENABLED",
+          },
+        },
+        "Name": "kiro-worker-production",
+        "QueuedTimeoutInMinutes": 480,
+        "ServiceRole": "arn:aws:iam::123456789012:role/kiro-worker-test-codebuild-role",
+        "Source": {
+          "BuildSpec": "buildspec.yml",
+          "Location": "https://github.com/placeholder/placeholder.git",
+          "ReportBuildStatus": true,
+          "Type": "GITHUB",
+        },
+        "Tags": [
+          {
+            "Key": "Component",
+            "Value": "CodeBuild",
+          },
+          {
+            "Key": "Purpose",
+            "Value": "KiroWorker",
+          },
+        ],
+        "TimeoutInMinutes": 120,
+        "Triggers": {
+          "Webhook": false,
+        },
+      },
+      "Type": "AWS::CodeBuild::Project",
+    },
+  },
+  "Rules": {
+    "CheckBootstrapVersion": {
+      "Assertions": [
+        {
+          "Assert": {
+            "Fn::Not": [
+              {
+                "Fn::Contains": [
+                  [
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5",
+                  ],
+                  {
+                    "Ref": "BootstrapVersion",
+                  },
+                ],
+              },
+            ],
+          },
+          "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI.",
+        },
+      ],
+    },
+  },
+}
+`;
+
+exports[`CodeBuildProjectsStack > Snapshot Tests > should match snapshot for staging environment 1`] = `
+{
+  "Outputs": {
+    "BuildRoleArn": {
+      "Description": "ARN of the IAM role used by CodeBuild",
+      "Export": {
+        "Name": "StagingStack-BuildRoleArn",
+      },
+      "Value": "arn:aws:iam::123456789012:role/kiro-worker-test-codebuild-role",
+    },
+    "ExportsOutputRefWorkerProject45F2BEBF8D436BB8": {
+      "Export": {
+        "Name": "StagingStack:ExportsOutputRefWorkerProject45F2BEBF8D436BB8",
+      },
+      "Value": {
+        "Ref": "WorkerProject45F2BEBF",
+      },
+    },
+    "ProjectArn": {
+      "Description": "ARN of the CodeBuild project",
+      "Export": {
+        "Name": "StagingStack-ProjectArn",
+      },
+      "Value": {
+        "Fn::GetAtt": [
+          "WorkerProject45F2BEBF",
+          "Arn",
+        ],
+      },
+    },
+    "ProjectName": {
+      "Description": "Name of the CodeBuild project",
+      "Export": {
+        "Name": "StagingStack-ProjectName",
+      },
+      "Value": {
+        "Ref": "WorkerProject45F2BEBF",
+      },
+    },
+  },
+  "Parameters": {
+    "BootstrapVersion": {
+      "Default": "/cdk-bootstrap/hnb659fds/version",
+      "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+  },
+  "Resources": {
+    "WorkerProject45F2BEBF": {
+      "Properties": {
+        "Artifacts": {
+          "Location": "kiro-worker-test-artifacts",
+          "Name": "artifacts",
+          "NamespaceType": "BUILD_ID",
+          "Packaging": "NONE",
+          "Path": "staging/",
+          "Type": "S3",
+        },
+        "BadgeEnabled": false,
+        "Cache": {
+          "Modes": [
+            "LOCAL_SOURCE_CACHE",
+            "LOCAL_CUSTOM_CACHE",
+          ],
+          "Type": "LOCAL",
+        },
+        "ConcurrentBuildLimit": 1,
+        "Description": "Kiro Worker CodeBuild project for staging environment",
+        "EncryptionKey": "alias/aws/s3",
+        "Environment": {
+          "ComputeType": "BUILD_GENERAL1_MEDIUM",
+          "EnvironmentVariables": [
+            {
+              "Name": "ENVIRONMENT",
+              "Type": "PLAINTEXT",
+              "Value": "staging",
+            },
+            {
+              "Name": "COVERAGE_THRESHOLD",
+              "Type": "PLAINTEXT",
+              "Value": "80",
+            },
+            {
+              "Name": "BRANCH_NAME",
+              "Type": "PLAINTEXT",
+              "Value": "",
+            },
+            {
+              "Name": "SPEC_PATH",
+              "Type": "PLAINTEXT",
+              "Value": "",
+            },
+            {
+              "Name": "WORK_ITEM_ID",
+              "Type": "PLAINTEXT",
+              "Value": "",
+            },
+          ],
+          "Image": "aws/codebuild/standard:7.0",
+          "ImagePullCredentialsType": "CODEBUILD",
+          "PrivilegedMode": false,
+          "Type": "LINUX_CONTAINER",
+        },
+        "LogsConfig": {
+          "CloudWatchLogs": {
+            "GroupName": "/aws/codebuild/kiro-worker-test",
+            "Status": "ENABLED",
+          },
+        },
+        "Name": "kiro-worker-staging",
+        "QueuedTimeoutInMinutes": 480,
+        "ServiceRole": "arn:aws:iam::123456789012:role/kiro-worker-test-codebuild-role",
+        "Source": {
+          "BuildSpec": "buildspec.yml",
+          "Location": "https://github.com/placeholder/placeholder.git",
+          "ReportBuildStatus": true,
+          "Type": "GITHUB",
+        },
+        "Tags": [
+          {
+            "Key": "Component",
+            "Value": "CodeBuild",
+          },
+          {
+            "Key": "Purpose",
+            "Value": "KiroWorker",
+          },
+        ],
+        "TimeoutInMinutes": 60,
+        "Triggers": {
+          "Webhook": false,
+        },
+      },
+      "Type": "AWS::CodeBuild::Project",
+    },
+  },
+  "Rules": {
+    "CheckBootstrapVersion": {
+      "Assertions": [
+        {
+          "Assert": {
+            "Fn::Not": [
+              {
+                "Fn::Contains": [
+                  [
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5",
+                  ],
+                  {
+                    "Ref": "BootstrapVersion",
+                  },
+                ],
+              },
+            ],
+          },
+          "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI.",
+        },
+      ],
+    },
+  },
+}
+`;
+
+exports[`CodeBuildProjectsStack > Snapshot Tests > should match snapshot for test environment 1`] = `
+{
+  "Outputs": {
+    "BuildRoleArn": {
+      "Description": "ARN of the IAM role used by CodeBuild",
+      "Export": {
+        "Name": "TestStack-BuildRoleArn",
+      },
+      "Value": "arn:aws:iam::123456789012:role/kiro-worker-test-codebuild-role",
+    },
+    "ExportsOutputRefWorkerProject45F2BEBF8D436BB8": {
+      "Export": {
+        "Name": "TestStack:ExportsOutputRefWorkerProject45F2BEBF8D436BB8",
+      },
+      "Value": {
+        "Ref": "WorkerProject45F2BEBF",
+      },
+    },
+    "ProjectArn": {
+      "Description": "ARN of the CodeBuild project",
+      "Export": {
+        "Name": "TestStack-ProjectArn",
+      },
+      "Value": {
+        "Fn::GetAtt": [
+          "WorkerProject45F2BEBF",
+          "Arn",
+        ],
+      },
+    },
+    "ProjectName": {
+      "Description": "Name of the CodeBuild project",
+      "Export": {
+        "Name": "TestStack-ProjectName",
+      },
+      "Value": {
+        "Ref": "WorkerProject45F2BEBF",
+      },
+    },
+  },
+  "Parameters": {
+    "BootstrapVersion": {
+      "Default": "/cdk-bootstrap/hnb659fds/version",
+      "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+  },
+  "Resources": {
+    "WorkerProject45F2BEBF": {
+      "Properties": {
+        "Artifacts": {
+          "Location": "kiro-worker-test-artifacts",
+          "Name": "artifacts",
+          "NamespaceType": "BUILD_ID",
+          "Packaging": "NONE",
+          "Path": "test/",
+          "Type": "S3",
+        },
+        "BadgeEnabled": false,
+        "Cache": {
+          "Modes": [
+            "LOCAL_SOURCE_CACHE",
+            "LOCAL_CUSTOM_CACHE",
+          ],
+          "Type": "LOCAL",
+        },
+        "ConcurrentBuildLimit": 1,
+        "Description": "Kiro Worker CodeBuild project for test environment",
+        "EncryptionKey": "alias/aws/s3",
+        "Environment": {
+          "ComputeType": "BUILD_GENERAL1_SMALL",
+          "EnvironmentVariables": [
+            {
+              "Name": "ENVIRONMENT",
+              "Type": "PLAINTEXT",
+              "Value": "test",
+            },
+            {
+              "Name": "COVERAGE_THRESHOLD",
+              "Type": "PLAINTEXT",
+              "Value": "80",
+            },
+            {
+              "Name": "BRANCH_NAME",
+              "Type": "PLAINTEXT",
+              "Value": "",
+            },
+            {
+              "Name": "SPEC_PATH",
+              "Type": "PLAINTEXT",
+              "Value": "",
+            },
+            {
+              "Name": "WORK_ITEM_ID",
+              "Type": "PLAINTEXT",
+              "Value": "",
+            },
+          ],
+          "Image": "aws/codebuild/standard:7.0",
+          "ImagePullCredentialsType": "CODEBUILD",
+          "PrivilegedMode": false,
+          "Type": "LINUX_CONTAINER",
+        },
+        "LogsConfig": {
+          "CloudWatchLogs": {
+            "GroupName": "/aws/codebuild/kiro-worker-test",
+            "Status": "ENABLED",
+          },
+        },
+        "Name": "kiro-worker-test",
+        "QueuedTimeoutInMinutes": 480,
+        "ServiceRole": "arn:aws:iam::123456789012:role/kiro-worker-test-codebuild-role",
+        "Source": {
+          "BuildSpec": "buildspec.yml",
+          "Location": "https://github.com/placeholder/placeholder.git",
+          "ReportBuildStatus": true,
+          "Type": "GITHUB",
+        },
+        "Tags": [
+          {
+            "Key": "Component",
+            "Value": "CodeBuild",
+          },
+          {
+            "Key": "Purpose",
+            "Value": "KiroWorker",
+          },
+        ],
+        "TimeoutInMinutes": 60,
+        "Triggers": {
+          "Webhook": false,
+        },
+      },
+      "Type": "AWS::CodeBuild::Project",
+    },
+  },
+  "Rules": {
+    "CheckBootstrapVersion": {
+      "Assertions": [
+        {
+          "Assert": {
+            "Fn::Not": [
+              {
+                "Fn::Contains": [
+                  [
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5",
+                  ],
+                  {
+                    "Ref": "BootstrapVersion",
+                  },
+                ],
+              },
+            ],
+          },
+          "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI.",
+        },
+      ],
+    },
+  },
+}
+`;

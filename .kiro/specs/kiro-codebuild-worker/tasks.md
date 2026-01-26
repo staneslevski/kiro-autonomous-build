@@ -261,21 +261,21 @@
 
 ## Phase 7: AWS Infrastructure (CDK)
 
-### 16. CDK Project Setup
-- [ ] 16.1 Initialize CDK project in infrastructure/ directory
+### 16. CDK Project Setup ✅
+- [x] 16.1 Initialize CDK project in infrastructure/ directory
   - **Requirements**: Foundation for Requirements 6, 9, 15, 16
   - **Details**: Create infrastructure/ with bin/, lib/stacks/, lib/constructs/, lib/config/, test/ directories, install AWS CDK dependencies
   
-- [ ] 16.2 Create environment configuration
+- [x] 16.2 Create environment configuration
   - **Requirements**: Requirement 5 (Multi-Environment Support), Requirement 16 (Deployment Strategy)
   - **Details**: Create lib/config/environments.ts with test/staging/production configurations (account, region, coverage threshold, polling interval)
   
-- [ ] 16.3 Create CDK app entry point
+- [x] 16.3 Create CDK app entry point
   - **Requirements**: Requirement 16 (Deployment Strategy)
   - **Details**: Create bin/kiro-worker.ts to instantiate stacks with environment context
 
-### 17. Core Infrastructure Stack
-- [ ] 17.1 Create CoreInfrastructureStack
+### 17. Core Infrastructure Stack ✅
+- [x] 17.1 Create CoreInfrastructureStack
   - **Requirements**: Requirement 9.4 (Build Artifacts), Requirement 19 (Single Work Item Execution)
   - **Details**: Create lib/stacks/core-infrastructure-stack.ts with S3 buckets for artifacts (encryption, versioning, lifecycle rules), CloudWatch Log Groups, DynamoDB table for work item locking (lockKey PK, TTL on expiresAt)
   
@@ -283,63 +283,63 @@
   - **Requirements**: Requirement 7.3 (Credential and Secret Management), Requirement 16.5 (Deployment Strategy)
   - **Details**: Create IAM roles with least-privilege permissions for Secrets Manager, S3, CloudWatch Logs, Parameter Store access
   
-- [ ] 17.3 Write tests for CoreInfrastructureStack
+- [x] 17.3 Write tests for CoreInfrastructureStack
   - **Requirements**: Requirement 20 (Comprehensive Testing)
   - **Details**: Test CloudFormation template validity, resource creation, IAM permissions using CDK assertions - achieve ≥80% coverage
 
-### 18. Secrets and Configuration Stack
-- [ ] 18.1 Create SecretsConfigurationStack
+### 18. Secrets and Configuration Stack ✅
+- [x] 18.1 Create SecretsConfigurationStack
   - **Requirements**: Requirement 7.1, 7.2 (Credential and Secret Management), Requirement 17 (GitHub Project Integration)
   - **Details**: Create lib/stacks/secrets-configuration-stack.ts with Secrets Manager secrets for Git credentials and API tokens, Parameter Store parameters for GitHub Project config, KMS keys for encryption
   
-- [ ] 18.2 Implement secret placeholders and documentation
+- [x] 18.2 Implement secret placeholders and documentation
   - **Requirements**: Requirement 16.8 (Deployment Strategy)
   - **Details**: Create secrets with placeholder values, output ARNs with instructions to populate manually after deployment
   
-- [ ] 18.3 Write tests for SecretsConfigurationStack
+- [x] 18.3 Write tests for SecretsConfigurationStack
   - **Requirements**: Requirement 20 (Comprehensive Testing)
   - **Details**: Test secret creation, encryption configuration, parameter store setup - achieve ≥80% coverage
 
-### 19. Work Item Poller Stack
-- [ ] 19.1 Create WorkItemPollerStack
+### 19. Work Item Poller Stack ✅
+- [x] 19.1 Create WorkItemPollerStack
   - **Requirements**: Requirement 18 (Scheduled Work Item Processing)
   - **Details**: Create lib/stacks/work-item-poller-stack.ts with Lambda function for polling, EventBridge scheduled rule (configurable interval), IAM role for Lambda execution, Dead Letter Queue (SQS)
   
-- [ ] 19.2 Implement Lambda function deployment
+- [x] 19.2 Implement Lambda function deployment
   - **Requirements**: Requirement 18 (Scheduled Work Item Processing)
   - **Details**: Package Lambda function code from src/lambda/, configure environment variables (LOCKS_TABLE_NAME, GITHUB_TOKEN_SECRET_ARN), set timeout to 15 minutes
   
-- [ ] 19.3 Write tests for WorkItemPollerStack
+- [x] 19.3 Write tests for WorkItemPollerStack
   - **Requirements**: Requirement 20 (Comprehensive Testing)
   - **Details**: Test Lambda creation, EventBridge rule configuration, IAM permissions - achieve ≥80% coverage
 
-### 20. CodeBuild Projects Stack
-- [ ] 20.1 Create CodeBuildProjectsStack
+### 20. CodeBuild Projects Stack ✅
+- [x] 20.1 Create CodeBuildProjectsStack
   - **Requirements**: Requirement 5.2, 5.3, 5.4, Requirement 6 (CodeBuild Integration)
   - **Details**: Create lib/stacks/codebuild-projects-stack.ts with CodeBuild projects for test, staging, production environments, configure build compute (SMALL), timeout (60 minutes), buildspec.yml reference
   
-- [ ] 20.2 Implement VPC configuration (optional)
+- [ ]* 20.2 Implement VPC configuration (optional)
   - **Requirements**: Requirement 6 (CodeBuild Integration)
   - **Details**: Configure VPC, subnets, security groups for CodeBuild if needed for private resource access
   
-- [ ] 20.3 Write tests for CodeBuildProjectsStack
+- [x] 20.3 Write tests for CodeBuildProjectsStack
   - **Requirements**: Requirement 20 (Comprehensive Testing)
   - **Details**: Test CodeBuild project creation, environment configuration, IAM roles - achieve ≥80% coverage
 
-### 21. Monitoring and Alerting Stack
-- [ ] 21.1 Create MonitoringAlertingStack
+### 21. Monitoring and Alerting Stack ✅
+- [x] 21.1 Create MonitoringAlertingStack
   - **Requirements**: Requirement 15 (Infrastructure Monitoring and Alerting)
   - **Details**: Create lib/stacks/monitoring-alerting-stack.ts with SNS topics for test/staging/production, CloudWatch Alarms for build metrics, operation metrics, resource metrics
   
-- [ ] 21.2 Implement NotificationInterface abstraction
+- [x] 21.2 Implement NotificationInterface abstraction
   - **Requirements**: Requirement 15.5, 15.6 (Infrastructure Monitoring and Alerting)
   - **Details**: Create clean interface for notification delivery (SNS initially, designed for future SES migration)
   
-- [ ] 21.3 Configure environment-specific alarm thresholds
+- [x] 21.3 Configure environment-specific alarm thresholds
   - **Requirements**: Requirement 15.7 (Infrastructure Monitoring and Alerting)
   - **Details**: Configure different warning/error thresholds for test, staging, production environments
   
-- [ ] 21.4 Write tests for MonitoringAlertingStack
+- [x] 21.4 Write tests for MonitoringAlertingStack
   - **Requirements**: Requirement 20 (Comprehensive Testing)
   - **Details**: Test alarm creation, SNS topic configuration, notification delivery - achieve ≥80% coverage
 

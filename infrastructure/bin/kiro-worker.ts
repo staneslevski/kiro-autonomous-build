@@ -22,6 +22,11 @@
 
 import * as cdk from 'aws-cdk-lib';
 import { getEnvironmentConfig, validateEnvironmentConfig } from '../lib/config/environments';
+import { CoreInfrastructureStack } from '../lib/stacks/core-infrastructure-stack';
+import { SecretsConfigurationStack } from '../lib/stacks/secrets-configuration-stack';
+import { WorkItemPollerStack } from '../lib/stacks/work-item-poller-stack';
+import { CodeBuildProjectsStack } from '../lib/stacks/codebuild-projects-stack';
+import { MonitoringAlertingStack } from '../lib/stacks/monitoring-alerting-stack';
 
 // Create CDK app
 const app = new cdk.App();
@@ -48,55 +53,63 @@ const stackEnv: cdk.Environment = {
 // Stack naming prefix
 const stackPrefix = `KiroWorker-${config.environment}`;
 
-/**
- * TODO: Instantiate stacks here as they are implemented in later tasks
- * 
- * Example stack instantiation (to be uncommented when stacks are created):
- * 
- * // 1. Core Infrastructure Stack
- * const coreStack = new CoreInfrastructureStack(app, `${stackPrefix}-Core`, {
- *   env: stackEnv,
- *   description: `Core infrastructure for Kiro Worker (${config.environment})`,
- *   config,
- * });
- * 
- * // 2. Secrets Configuration Stack
- * const secretsStack = new SecretsConfigurationStack(app, `${stackPrefix}-Secrets`, {
- *   env: stackEnv,
- *   description: `Secrets and configuration for Kiro Worker (${config.environment})`,
- *   config,
- * });
- * 
- * // 3. Work Item Poller Stack
- * const pollerStack = new WorkItemPollerStack(app, `${stackPrefix}-Poller`, {
- *   env: stackEnv,
- *   description: `Work item poller Lambda for Kiro Worker (${config.environment})`,
- *   config,
- *   locksTable: coreStack.locksTable,
- *   githubTokenSecret: secretsStack.githubTokenSecret,
- * });
- * 
- * // 4. CodeBuild Projects Stack
- * const codeBuildStack = new CodeBuildProjectsStack(app, `${stackPrefix}-CodeBuild`, {
- *   env: stackEnv,
- *   description: `CodeBuild projects for Kiro Worker (${config.environment})`,
- *   config,
- *   artifactsBucket: coreStack.artifactsBucket,
- *   logGroup: coreStack.logGroup,
- *   githubTokenSecret: secretsStack.githubTokenSecret,
- *   gitCredentialsSecret: secretsStack.gitCredentialsSecret,
- * });
- * 
- * // 5. Monitoring and Alerting Stack
- * const monitoringStack = new MonitoringAlertingStack(app, `${stackPrefix}-Monitoring`, {
- *   env: stackEnv,
- *   description: `Monitoring and alerting for Kiro Worker (${config.environment})`,
- *   config,
- *   codeBuildProject: codeBuildStack.project,
- *   pollerFunction: pollerStack.pollerFunction,
- *   locksTable: coreStack.locksTable,
- * });
- */
+// 1. Core Infrastructure Stack
+const coreStack = new CoreInfrastructureStack(app, `${stackPrefix}-Core`, {
+  env: stackEnv,
+  description: `Core infrastructure for Kiro Worker (${config.environment})`,
+  config,
+});
+
+// 2. Secrets Configuration Stack
+const secretsStack = new SecretsConfigurationStack(app, `${stackPrefix}-Secrets`, {
+  env: stackEnv,
+  description: `Secrets and configuration for Kiro Worker (${config.environment})`,
+  config,
+});
+
+// 4. CodeBuild Projects Stack (created before poller so we can pass project name)
+const codeBuildStack = new CodeBuildProjectsStack(app, `${stackPrefix}-CodeBuild`, {
+  env: stackEnv,
+  description: `CodeBuild projects for Kiro Worker (${config.environment})`,
+  config,
+  artifactsBucket: coreStack.artifactsBucket,
+  codeBuildLogGroup: coreStack.codeBuildLogGroup,
+  codeBuildRole: coreStack.codeBuildRole,
+});
+
+// 3. Work Item Poller Stack (depends on CodeBuild project name)
+const pollerStack = new WorkItemPollerStack(app, `${stackPrefix}-Poller`, {
+  env: stackEnv,
+  description: `Work item poller Lambda for Kiro Worker (${config.environment})`,
+  config,
+  locksTable: coreStack.locksTable,
+  lambdaLogGroup: coreStack.lambdaLogGroup,
+  githubTokenSecret: secretsStack.githubTokenSecret,
+  codeBuildProjectName: codeBuildStack.project.projectName,
+  // GitHub configuration - these should be configured via Parameter Store after deployment
+  githubOrganization: 'placeholder-org',
+  githubRepository: 'placeholder-repo',
+  githubProjectNumber: 1,
+  targetStatusColumn: 'For Implementation',
+});
+
+// Add dependency to ensure proper deployment order
+pollerStack.addDependency(codeBuildStack);
+
+// 5. Monitoring and Alerting Stack
+const monitoringStack = new MonitoringAlertingStack(app, `${stackPrefix}-Monitoring`, {
+  env: stackEnv,
+  description: `Monitoring and alerting for Kiro Worker (${config.environment})`,
+  config,
+  codeBuildProject: codeBuildStack.project,
+  lambdaFunction: pollerStack.pollerFunction,
+  dynamoDBTable: coreStack.locksTable,
+  alertEmail: config.alertEmail, // Optional: configure in environments.ts
+});
+
+// Add dependencies
+monitoringStack.addDependency(codeBuildStack);
+monitoringStack.addDependency(pollerStack);
 
 // Add tags to all resources in the app
 cdk.Tags.of(app).add('Project', 'KiroWorker');
