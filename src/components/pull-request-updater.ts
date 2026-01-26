@@ -281,3 +281,6 @@ ${f.error}
     };
   }
 }
+
+// Export PullRequestUpdaterImpl as PullRequestUpdater for backward compatibility
+export { PullRequestUpdaterImpl as PullRequestUpdater };

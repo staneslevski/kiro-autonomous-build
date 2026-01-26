@@ -417,3 +417,6 @@ export class TestRunnerImpl implements TestRunner {
     };
   }
 }
+
+// Export TestRunnerImpl as TestRunner for backward compatibility
+export { TestRunnerImpl as TestRunner };

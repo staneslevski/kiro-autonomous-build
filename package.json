@@ -4,6 +4,9 @@
   "description": "Automated coding agent system integrating Kiro CLI with AWS CodeBuild",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "bin": {
+    "kiro-worker": "dist/cli.js"
+  },
   "scripts": {
     "build": "tsc",
     "test": "vitest run",
