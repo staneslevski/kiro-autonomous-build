@@ -113,7 +113,7 @@ This task list implements a CD pipeline for the Kiro CodeBuild Worker project. T
   - Add projects as actions to appropriate pipeline stages
   - **Validates**: TR-3, TR-4, US-1, US-2, US-3
 
-- [ ] 5.3 Write unit tests for Pipeline Stack
+- [x] 5.3 Write unit tests for Pipeline Stack
   - Create `infrastructure/test/stacks/cd-pipeline-stack.test.ts`
   - Test pipeline has exactly 5 stages in correct order (Source, Build, TestEnv, StagingEnv, ProductionEnv)
   - Test source action configured with GitHub webhook trigger

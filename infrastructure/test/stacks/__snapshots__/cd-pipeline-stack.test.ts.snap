@@ -1,0 +1,3510 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`CDPipelineStack > Snapshot Test > should match snapshot 1`] = `
+{
+  "Outputs": {
+    "ApprovalTopicArn": {
+      "Description": "ARN of the approval SNS topic",
+      "Export": {
+        "Name": "kiro-pipeline-test-approval-topic-arn",
+      },
+      "Value": {
+        "Ref": "ApprovalTopic1D517B4C",
+      },
+    },
+    "BuildProjectProjectArn63622589": {
+      "Description": "ARN of CodeBuild project kiro-pipeline-test-build",
+      "Export": {
+        "Name": "kiro-pipeline-test-build-Arn",
+      },
+      "Value": {
+        "Fn::GetAtt": [
+          "BuildProjectF5CFF335",
+          "Arn",
+        ],
+      },
+    },
+    "BuildProjectProjectNameDCE071CC": {
+      "Description": "Name of CodeBuild project kiro-pipeline-test-build",
+      "Export": {
+        "Name": "kiro-pipeline-test-build-Name",
+      },
+      "Value": {
+        "Ref": "BuildProjectF5CFF335",
+      },
+    },
+    "E2ETestProjectProjectArn52BF8B84": {
+      "Description": "ARN of CodeBuild project kiro-pipeline-test-e2e-test",
+      "Export": {
+        "Name": "kiro-pipeline-test-e2e-test-Arn",
+      },
+      "Value": {
+        "Fn::GetAtt": [
+          "E2ETestProjectF7C50EFB",
+          "Arn",
+        ],
+      },
+    },
+    "E2ETestProjectProjectNameE724DCC0": {
+      "Description": "Name of CodeBuild project kiro-pipeline-test-e2e-test",
+      "Export": {
+        "Name": "kiro-pipeline-test-e2e-test-Name",
+      },
+      "Value": {
+        "Ref": "E2ETestProjectF7C50EFB",
+      },
+    },
+    "IntegrationTestProjectProjectArn02F3C7E8": {
+      "Description": "ARN of CodeBuild project kiro-pipeline-test-integration-test",
+      "Export": {
+        "Name": "kiro-pipeline-test-integration-test-Arn",
+      },
+      "Value": {
+        "Fn::GetAtt": [
+          "IntegrationTestProject4574B32B",
+          "Arn",
+        ],
+      },
+    },
+    "IntegrationTestProjectProjectName9478F7F3": {
+      "Description": "Name of CodeBuild project kiro-pipeline-test-integration-test",
+      "Export": {
+        "Name": "kiro-pipeline-test-integration-test-Name",
+      },
+      "Value": {
+        "Ref": "IntegrationTestProject4574B32B",
+      },
+    },
+    "PipelineArn": {
+      "Description": "ARN of the CodePipeline",
+      "Export": {
+        "Name": "kiro-pipeline-test-arn",
+      },
+      "Value": {
+        "Fn::Join": [
+          "",
+          [
+            "arn:",
+            {
+              "Ref": "AWS::Partition",
+            },
+            ":codepipeline:us-east-1:123456789012:",
+            {
+              "Ref": "PipelineC660917D",
+            },
+          ],
+        ],
+      },
+    },
+    "PipelineName": {
+      "Description": "Name of the CodePipeline",
+      "Export": {
+        "Name": "kiro-pipeline-test-name",
+      },
+      "Value": {
+        "Ref": "PipelineC660917D",
+      },
+    },
+    "productionDeployProjectProjectArn11744A7E": {
+      "Description": "ARN of CodeBuild project kiro-pipeline-test-deploy-production",
+      "Export": {
+        "Name": "kiro-pipeline-test-deploy-production-Arn",
+      },
+      "Value": {
+        "Fn::GetAtt": [
+          "productionDeployProject4515A358",
+          "Arn",
+        ],
+      },
+    },
+    "productionDeployProjectProjectName691AE402": {
+      "Description": "Name of CodeBuild project kiro-pipeline-test-deploy-production",
+      "Export": {
+        "Name": "kiro-pipeline-test-deploy-production-Name",
+      },
+      "Value": {
+        "Ref": "productionDeployProject4515A358",
+      },
+    },
+    "stagingDeployProjectProjectArn632ABCCE": {
+      "Description": "ARN of CodeBuild project kiro-pipeline-test-deploy-staging",
+      "Export": {
+        "Name": "kiro-pipeline-test-deploy-staging-Arn",
+      },
+      "Value": {
+        "Fn::GetAtt": [
+          "stagingDeployProjectF8EF6FA9",
+          "Arn",
+        ],
+      },
+    },
+    "stagingDeployProjectProjectNameB93DE84A": {
+      "Description": "Name of CodeBuild project kiro-pipeline-test-deploy-staging",
+      "Export": {
+        "Name": "kiro-pipeline-test-deploy-staging-Name",
+      },
+      "Value": {
+        "Ref": "stagingDeployProjectF8EF6FA9",
+      },
+    },
+    "testDeployProjectProjectArnBE0FBABB": {
+      "Description": "ARN of CodeBuild project kiro-pipeline-test-deploy-test",
+      "Export": {
+        "Name": "kiro-pipeline-test-deploy-test-Arn",
+      },
+      "Value": {
+        "Fn::GetAtt": [
+          "testDeployProject9CFC559F",
+          "Arn",
+        ],
+      },
+    },
+    "testDeployProjectProjectName0C49FD39": {
+      "Description": "Name of CodeBuild project kiro-pipeline-test-deploy-test",
+      "Export": {
+        "Name": "kiro-pipeline-test-deploy-test-Name",
+      },
+      "Value": {
+        "Ref": "testDeployProject9CFC559F",
+      },
+    },
+  },
+  "Parameters": {
+    "BootstrapVersion": {
+      "Default": "/cdk-bootstrap/hnb659fds/version",
+      "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+  },
+  "Resources": {
+    "ApprovalTopic1D517B4C": {
+      "Properties": {
+        "DisplayName": "Kiro Pipeline test Approval Notifications",
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "test",
+          },
+          {
+            "Key": "ManagedBy",
+            "Value": "CDK",
+          },
+          {
+            "Key": "Project",
+            "Value": "KiroPipeline",
+          },
+          {
+            "Key": "Stack",
+            "Value": "CDPipeline",
+          },
+        ],
+        "TopicName": "kiro-pipeline-test-approvals",
+      },
+      "Type": "AWS::SNS::Topic",
+    },
+    "BuildProjectF5CFF335": {
+      "Properties": {
+        "Artifacts": {
+          "Type": "NO_ARTIFACTS",
+        },
+        "Cache": {
+          "Modes": [
+            "LOCAL_SOURCE_CACHE",
+            "LOCAL_DOCKER_LAYER_CACHE",
+            "LOCAL_CUSTOM_CACHE",
+          ],
+          "Type": "LOCAL",
+        },
+        "Description": "CodeBuild project for test environment - kiro-pipeline-test-build",
+        "EncryptionKey": "alias/aws/s3",
+        "Environment": {
+          "ComputeType": "BUILD_GENERAL1_SMALL",
+          "EnvironmentVariables": [
+            {
+              "Name": "ENVIRONMENT",
+              "Type": "PLAINTEXT",
+              "Value": "test",
+            },
+            {
+              "Name": "COVERAGE_THRESHOLD",
+              "Type": "PLAINTEXT",
+              "Value": "80",
+            },
+          ],
+          "Image": "aws/codebuild/standard:7.0",
+          "ImagePullCredentialsType": "CODEBUILD",
+          "PrivilegedMode": false,
+          "Type": "LINUX_CONTAINER",
+        },
+        "LogsConfig": {
+          "CloudWatchLogs": {
+            "GroupName": {
+              "Ref": "BuildProjectLogGroupA355712E",
+            },
+            "Status": "ENABLED",
+          },
+        },
+        "Name": "kiro-pipeline-test-build",
+        "QueuedTimeoutInMinutes": 480,
+        "ServiceRole": {
+          "Fn::GetAtt": [
+            "BuildProjectRoleAA92C755",
+            "Arn",
+          ],
+        },
+        "Source": {
+          "BuildSpec": "buildspec-build.yml",
+          "Location": "https://github.com/placeholder/placeholder.git",
+          "ReportBuildStatus": true,
+          "Type": "GITHUB",
+        },
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "test",
+          },
+          {
+            "Key": "ManagedBy",
+            "Value": "CDK",
+          },
+          {
+            "Key": "Project",
+            "Value": "KiroPipeline",
+          },
+          {
+            "Key": "Stack",
+            "Value": "CDPipeline",
+          },
+        ],
+        "TimeoutInMinutes": 60,
+        "Triggers": {
+          "Webhook": false,
+        },
+      },
+      "Type": "AWS::CodeBuild::Project",
+    },
+    "BuildProjectLogGroupA355712E": {
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "LogGroupName": "/aws/codebuild/kiro-pipeline-test-build",
+        "RetentionInDays": 90,
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "test",
+          },
+          {
+            "Key": "ManagedBy",
+            "Value": "CDK",
+          },
+          {
+            "Key": "Project",
+            "Value": "KiroPipeline",
+          },
+          {
+            "Key": "Stack",
+            "Value": "CDPipeline",
+          },
+        ],
+      },
+      "Type": "AWS::Logs::LogGroup",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "BuildProjectRoleAA92C755": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "codebuild.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "Description": "IAM role for CodeBuild project kiro-pipeline-test-build",
+        "RoleName": "kiro-pipeline-test-build-role",
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "test",
+          },
+          {
+            "Key": "ManagedBy",
+            "Value": "CDK",
+          },
+          {
+            "Key": "Project",
+            "Value": "KiroPipeline",
+          },
+          {
+            "Key": "Stack",
+            "Value": "CDPipeline",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "BuildProjectRoleDefaultPolicy3E9F248C": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                "arn:aws:logs:us-east-1:123456789012:log-group:/aws/codebuild/kiro-pipeline-test-build",
+                "arn:aws:logs:us-east-1:123456789012:log-group:/aws/codebuild/kiro-pipeline-test-build:*",
+              ],
+            },
+            {
+              "Action": [
+                "s3:GetObject",
+                "s3:GetObjectVersion",
+                "s3:PutObject",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":s3:::test-artifacts-bucket/*",
+                  ],
+                ],
+              },
+            },
+            {
+              "Action": [
+                "s3:GetBucketAcl",
+                "s3:GetBucketLocation",
+                "s3:ListBucket",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":s3:::test-artifacts-bucket",
+                  ],
+                ],
+              },
+            },
+            {
+              "Action": "secretsmanager:GetSecretValue",
+              "Effect": "Allow",
+              "Resource": "arn:aws:secretsmanager:us-east-1:123456789012:secret:kiro-pipeline-test-*",
+            },
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Resource": "arn:aws:iam::123456789012:role/cdk-*",
+            },
+            {
+              "Action": [
+                "logs:CreateLogStream",
+                "logs:PutLogEvents",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "BuildProjectLogGroupA355712E",
+                  "Arn",
+                ],
+              },
+            },
+            {
+              "Action": [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":logs:us-east-1:123456789012:log-group:/aws/codebuild/",
+                      {
+                        "Ref": "BuildProjectF5CFF335",
+                      },
+                    ],
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":logs:us-east-1:123456789012:log-group:/aws/codebuild/",
+                      {
+                        "Ref": "BuildProjectF5CFF335",
+                      },
+                      ":*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": [
+                "codebuild:CreateReportGroup",
+                "codebuild:CreateReport",
+                "codebuild:UpdateReport",
+                "codebuild:BatchPutTestCases",
+                "codebuild:BatchPutCodeCoverages",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":codebuild:us-east-1:123456789012:report-group/",
+                    {
+                      "Ref": "BuildProjectF5CFF335",
+                    },
+                    "-*",
+                  ],
+                ],
+              },
+            },
+            {
+              "Action": [
+                "s3:GetObject*",
+                "s3:GetBucket*",
+                "s3:List*",
+                "s3:DeleteObject*",
+                "s3:PutObject",
+                "s3:PutObjectLegalHold",
+                "s3:PutObjectRetention",
+                "s3:PutObjectTagging",
+                "s3:PutObjectVersionTagging",
+                "s3:Abort*",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":s3:::test-artifacts-bucket",
+                    ],
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":s3:::test-artifacts-bucket/*",
+                    ],
+                  ],
+                },
+              ],
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "BuildProjectRoleDefaultPolicy3E9F248C",
+        "Roles": [
+          {
+            "Ref": "BuildProjectRoleAA92C755",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "E2ETestProjectF7C50EFB": {
+      "Properties": {
+        "Artifacts": {
+          "Type": "NO_ARTIFACTS",
+        },
+        "Cache": {
+          "Modes": [
+            "LOCAL_SOURCE_CACHE",
+            "LOCAL_DOCKER_LAYER_CACHE",
+            "LOCAL_CUSTOM_CACHE",
+          ],
+          "Type": "LOCAL",
+        },
+        "Description": "CodeBuild project for test environment - kiro-pipeline-test-e2e-test",
+        "EncryptionKey": "alias/aws/s3",
+        "Environment": {
+          "ComputeType": "BUILD_GENERAL1_SMALL",
+          "EnvironmentVariables": [
+            {
+              "Name": "ENVIRONMENT",
+              "Type": "PLAINTEXT",
+              "Value": "staging",
+            },
+            {
+              "Name": "TEST_TYPE",
+              "Type": "PLAINTEXT",
+              "Value": "e2e",
+            },
+          ],
+          "Image": "aws/codebuild/standard:7.0",
+          "ImagePullCredentialsType": "CODEBUILD",
+          "PrivilegedMode": false,
+          "Type": "LINUX_CONTAINER",
+        },
+        "LogsConfig": {
+          "CloudWatchLogs": {
+            "GroupName": {
+              "Ref": "E2ETestProjectLogGroupAC31E16E",
+            },
+            "Status": "ENABLED",
+          },
+        },
+        "Name": "kiro-pipeline-test-e2e-test",
+        "QueuedTimeoutInMinutes": 480,
+        "ServiceRole": {
+          "Fn::GetAtt": [
+            "E2ETestProjectRoleB0FAB208",
+            "Arn",
+          ],
+        },
+        "Source": {
+          "BuildSpec": "buildspec-e2e-test.yml",
+          "Location": "https://github.com/placeholder/placeholder.git",
+          "ReportBuildStatus": true,
+          "Type": "GITHUB",
+        },
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "test",
+          },
+          {
+            "Key": "ManagedBy",
+            "Value": "CDK",
+          },
+          {
+            "Key": "Project",
+            "Value": "KiroPipeline",
+          },
+          {
+            "Key": "Stack",
+            "Value": "CDPipeline",
+          },
+        ],
+        "TimeoutInMinutes": 60,
+        "Triggers": {
+          "Webhook": false,
+        },
+      },
+      "Type": "AWS::CodeBuild::Project",
+    },
+    "E2ETestProjectLogGroupAC31E16E": {
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "LogGroupName": "/aws/codebuild/kiro-pipeline-test-e2e-test",
+        "RetentionInDays": 90,
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "test",
+          },
+          {
+            "Key": "ManagedBy",
+            "Value": "CDK",
+          },
+          {
+            "Key": "Project",
+            "Value": "KiroPipeline",
+          },
+          {
+            "Key": "Stack",
+            "Value": "CDPipeline",
+          },
+        ],
+      },
+      "Type": "AWS::Logs::LogGroup",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "E2ETestProjectRoleB0FAB208": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "codebuild.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "Description": "IAM role for CodeBuild project kiro-pipeline-test-e2e-test",
+        "RoleName": "kiro-pipeline-test-e2e-test-role",
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "test",
+          },
+          {
+            "Key": "ManagedBy",
+            "Value": "CDK",
+          },
+          {
+            "Key": "Project",
+            "Value": "KiroPipeline",
+          },
+          {
+            "Key": "Stack",
+            "Value": "CDPipeline",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "E2ETestProjectRoleDefaultPolicy3AAE3B2D": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                "arn:aws:logs:us-east-1:123456789012:log-group:/aws/codebuild/kiro-pipeline-test-e2e-test",
+                "arn:aws:logs:us-east-1:123456789012:log-group:/aws/codebuild/kiro-pipeline-test-e2e-test:*",
+              ],
+            },
+            {
+              "Action": [
+                "s3:GetObject",
+                "s3:GetObjectVersion",
+                "s3:PutObject",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":s3:::test-artifacts-bucket/*",
+                  ],
+                ],
+              },
+            },
+            {
+              "Action": [
+                "s3:GetBucketAcl",
+                "s3:GetBucketLocation",
+                "s3:ListBucket",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":s3:::test-artifacts-bucket",
+                  ],
+                ],
+              },
+            },
+            {
+              "Action": "secretsmanager:GetSecretValue",
+              "Effect": "Allow",
+              "Resource": "arn:aws:secretsmanager:us-east-1:123456789012:secret:kiro-pipeline-test-*",
+            },
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Resource": "arn:aws:iam::123456789012:role/cdk-*",
+            },
+            {
+              "Action": [
+                "logs:CreateLogStream",
+                "logs:PutLogEvents",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "E2ETestProjectLogGroupAC31E16E",
+                  "Arn",
+                ],
+              },
+            },
+            {
+              "Action": [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":logs:us-east-1:123456789012:log-group:/aws/codebuild/",
+                      {
+                        "Ref": "E2ETestProjectF7C50EFB",
+                      },
+                    ],
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":logs:us-east-1:123456789012:log-group:/aws/codebuild/",
+                      {
+                        "Ref": "E2ETestProjectF7C50EFB",
+                      },
+                      ":*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": [
+                "codebuild:CreateReportGroup",
+                "codebuild:CreateReport",
+                "codebuild:UpdateReport",
+                "codebuild:BatchPutTestCases",
+                "codebuild:BatchPutCodeCoverages",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":codebuild:us-east-1:123456789012:report-group/",
+                    {
+                      "Ref": "E2ETestProjectF7C50EFB",
+                    },
+                    "-*",
+                  ],
+                ],
+              },
+            },
+            {
+              "Action": [
+                "s3:GetObject*",
+                "s3:GetBucket*",
+                "s3:List*",
+                "s3:DeleteObject*",
+                "s3:PutObject",
+                "s3:PutObjectLegalHold",
+                "s3:PutObjectRetention",
+                "s3:PutObjectTagging",
+                "s3:PutObjectVersionTagging",
+                "s3:Abort*",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":s3:::test-artifacts-bucket",
+                    ],
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":s3:::test-artifacts-bucket/*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": [
+                "s3:GetObject*",
+                "s3:GetBucket*",
+                "s3:List*",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":s3:::test-artifacts-bucket",
+                    ],
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":s3:::test-artifacts-bucket/*",
+                    ],
+                  ],
+                },
+              ],
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "E2ETestProjectRoleDefaultPolicy3AAE3B2D",
+        "Roles": [
+          {
+            "Ref": "E2ETestProjectRoleB0FAB208",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "IntegrationTestProject4574B32B": {
+      "Properties": {
+        "Artifacts": {
+          "Type": "NO_ARTIFACTS",
+        },
+        "Cache": {
+          "Modes": [
+            "LOCAL_SOURCE_CACHE",
+            "LOCAL_DOCKER_LAYER_CACHE",
+            "LOCAL_CUSTOM_CACHE",
+          ],
+          "Type": "LOCAL",
+        },
+        "Description": "CodeBuild project for test environment - kiro-pipeline-test-integration-test",
+        "EncryptionKey": "alias/aws/s3",
+        "Environment": {
+          "ComputeType": "BUILD_GENERAL1_SMALL",
+          "EnvironmentVariables": [
+            {
+              "Name": "ENVIRONMENT",
+              "Type": "PLAINTEXT",
+              "Value": "test",
+            },
+            {
+              "Name": "TEST_TYPE",
+              "Type": "PLAINTEXT",
+              "Value": "integration",
+            },
+          ],
+          "Image": "aws/codebuild/standard:7.0",
+          "ImagePullCredentialsType": "CODEBUILD",
+          "PrivilegedMode": false,
+          "Type": "LINUX_CONTAINER",
+        },
+        "LogsConfig": {
+          "CloudWatchLogs": {
+            "GroupName": {
+              "Ref": "IntegrationTestProjectLogGroup4046E646",
+            },
+            "Status": "ENABLED",
+          },
+        },
+        "Name": "kiro-pipeline-test-integration-test",
+        "QueuedTimeoutInMinutes": 480,
+        "ServiceRole": {
+          "Fn::GetAtt": [
+            "IntegrationTestProjectRoleB77E3450",
+            "Arn",
+          ],
+        },
+        "Source": {
+          "BuildSpec": "buildspec-integration-test.yml",
+          "Location": "https://github.com/placeholder/placeholder.git",
+          "ReportBuildStatus": true,
+          "Type": "GITHUB",
+        },
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "test",
+          },
+          {
+            "Key": "ManagedBy",
+            "Value": "CDK",
+          },
+          {
+            "Key": "Project",
+            "Value": "KiroPipeline",
+          },
+          {
+            "Key": "Stack",
+            "Value": "CDPipeline",
+          },
+        ],
+        "TimeoutInMinutes": 60,
+        "Triggers": {
+          "Webhook": false,
+        },
+      },
+      "Type": "AWS::CodeBuild::Project",
+    },
+    "IntegrationTestProjectLogGroup4046E646": {
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "LogGroupName": "/aws/codebuild/kiro-pipeline-test-integration-test",
+        "RetentionInDays": 90,
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "test",
+          },
+          {
+            "Key": "ManagedBy",
+            "Value": "CDK",
+          },
+          {
+            "Key": "Project",
+            "Value": "KiroPipeline",
+          },
+          {
+            "Key": "Stack",
+            "Value": "CDPipeline",
+          },
+        ],
+      },
+      "Type": "AWS::Logs::LogGroup",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "IntegrationTestProjectRoleB77E3450": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "codebuild.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "Description": "IAM role for CodeBuild project kiro-pipeline-test-integration-test",
+        "RoleName": "kiro-pipeline-test-integration-test-role",
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "test",
+          },
+          {
+            "Key": "ManagedBy",
+            "Value": "CDK",
+          },
+          {
+            "Key": "Project",
+            "Value": "KiroPipeline",
+          },
+          {
+            "Key": "Stack",
+            "Value": "CDPipeline",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "IntegrationTestProjectRoleDefaultPolicy0283DC5A": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                "arn:aws:logs:us-east-1:123456789012:log-group:/aws/codebuild/kiro-pipeline-test-integration-test",
+                "arn:aws:logs:us-east-1:123456789012:log-group:/aws/codebuild/kiro-pipeline-test-integration-test:*",
+              ],
+            },
+            {
+              "Action": [
+                "s3:GetObject",
+                "s3:GetObjectVersion",
+                "s3:PutObject",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":s3:::test-artifacts-bucket/*",
+                  ],
+                ],
+              },
+            },
+            {
+              "Action": [
+                "s3:GetBucketAcl",
+                "s3:GetBucketLocation",
+                "s3:ListBucket",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":s3:::test-artifacts-bucket",
+                  ],
+                ],
+              },
+            },
+            {
+              "Action": "secretsmanager:GetSecretValue",
+              "Effect": "Allow",
+              "Resource": "arn:aws:secretsmanager:us-east-1:123456789012:secret:kiro-pipeline-test-*",
+            },
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Resource": "arn:aws:iam::123456789012:role/cdk-*",
+            },
+            {
+              "Action": [
+                "logs:CreateLogStream",
+                "logs:PutLogEvents",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "IntegrationTestProjectLogGroup4046E646",
+                  "Arn",
+                ],
+              },
+            },
+            {
+              "Action": [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":logs:us-east-1:123456789012:log-group:/aws/codebuild/",
+                      {
+                        "Ref": "IntegrationTestProject4574B32B",
+                      },
+                    ],
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":logs:us-east-1:123456789012:log-group:/aws/codebuild/",
+                      {
+                        "Ref": "IntegrationTestProject4574B32B",
+                      },
+                      ":*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": [
+                "codebuild:CreateReportGroup",
+                "codebuild:CreateReport",
+                "codebuild:UpdateReport",
+                "codebuild:BatchPutTestCases",
+                "codebuild:BatchPutCodeCoverages",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":codebuild:us-east-1:123456789012:report-group/",
+                    {
+                      "Ref": "IntegrationTestProject4574B32B",
+                    },
+                    "-*",
+                  ],
+                ],
+              },
+            },
+            {
+              "Action": [
+                "s3:GetObject*",
+                "s3:GetBucket*",
+                "s3:List*",
+                "s3:DeleteObject*",
+                "s3:PutObject",
+                "s3:PutObjectLegalHold",
+                "s3:PutObjectRetention",
+                "s3:PutObjectTagging",
+                "s3:PutObjectVersionTagging",
+                "s3:Abort*",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":s3:::test-artifacts-bucket",
+                    ],
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":s3:::test-artifacts-bucket/*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": [
+                "s3:GetObject*",
+                "s3:GetBucket*",
+                "s3:List*",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":s3:::test-artifacts-bucket",
+                    ],
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":s3:::test-artifacts-bucket/*",
+                    ],
+                  ],
+                },
+              ],
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "IntegrationTestProjectRoleDefaultPolicy0283DC5A",
+        "Roles": [
+          {
+            "Ref": "IntegrationTestProjectRoleB77E3450",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "PipelineBuildBuildTestSecurityScanCodePipelineActionRoleB65C2373": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "AWS": {
+                  "Fn::GetAtt": [
+                    "PipelineRoleDCFDBB91",
+                    "Arn",
+                  ],
+                },
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "test",
+          },
+          {
+            "Key": "ManagedBy",
+            "Value": "CDK",
+          },
+          {
+            "Key": "Project",
+            "Value": "KiroPipeline",
+          },
+          {
+            "Key": "Stack",
+            "Value": "CDPipeline",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "PipelineBuildBuildTestSecurityScanCodePipelineActionRoleDefaultPolicy8A870086": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "codebuild:BatchGetBuilds",
+                "codebuild:StartBuild",
+                "codebuild:StopBuild",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "BuildProjectF5CFF335",
+                  "Arn",
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "PipelineBuildBuildTestSecurityScanCodePipelineActionRoleDefaultPolicy8A870086",
+        "Roles": [
+          {
+            "Ref": "PipelineBuildBuildTestSecurityScanCodePipelineActionRoleB65C2373",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "PipelineC660917D": {
+      "DependsOn": [
+        "PipelineRoleDefaultPolicy77A82A74",
+        "PipelineRoleDCFDBB91",
+      ],
+      "Properties": {
+        "ArtifactStore": {
+          "Location": "test-artifacts-bucket",
+          "Type": "S3",
+        },
+        "Name": "kiro-pipeline-test",
+        "RestartExecutionOnUpdate": false,
+        "RoleArn": {
+          "Fn::GetAtt": [
+            "PipelineRoleDCFDBB91",
+            "Arn",
+          ],
+        },
+        "Stages": [
+          {
+            "Actions": [
+              {
+                "ActionTypeId": {
+                  "Category": "Source",
+                  "Owner": "ThirdParty",
+                  "Provider": "GitHub",
+                  "Version": "1",
+                },
+                "Configuration": {
+                  "Branch": "main",
+                  "OAuthToken": {
+                    "Fn::Join": [
+                      "",
+                      [
+                        "{{resolve:secretsmanager:arn:",
+                        {
+                          "Ref": "AWS::Partition",
+                        },
+                        ":secretsmanager:us-east-1:123456789012:secret:kiro-pipeline-test-github-token:SecretString:::}}",
+                      ],
+                    ],
+                  },
+                  "Owner": "test-owner",
+                  "PollForSourceChanges": false,
+                  "Repo": "test-repo",
+                },
+                "Name": "GitHub_Source",
+                "OutputArtifacts": [
+                  {
+                    "Name": "SourceOutput",
+                  },
+                ],
+                "RunOrder": 1,
+              },
+            ],
+            "Name": "Source",
+          },
+          {
+            "Actions": [
+              {
+                "ActionTypeId": {
+                  "Category": "Build",
+                  "Owner": "AWS",
+                  "Provider": "CodeBuild",
+                  "Version": "1",
+                },
+                "Configuration": {
+                  "ProjectName": {
+                    "Ref": "BuildProjectF5CFF335",
+                  },
+                },
+                "InputArtifacts": [
+                  {
+                    "Name": "SourceOutput",
+                  },
+                ],
+                "Name": "Build_Test_SecurityScan",
+                "OutputArtifacts": [
+                  {
+                    "Name": "BuildOutput",
+                  },
+                ],
+                "RoleArn": {
+                  "Fn::GetAtt": [
+                    "PipelineBuildBuildTestSecurityScanCodePipelineActionRoleB65C2373",
+                    "Arn",
+                  ],
+                },
+                "RunOrder": 1,
+              },
+            ],
+            "Name": "Build",
+          },
+          {
+            "Actions": [
+              {
+                "ActionTypeId": {
+                  "Category": "Build",
+                  "Owner": "AWS",
+                  "Provider": "CodeBuild",
+                  "Version": "1",
+                },
+                "Configuration": {
+                  "ProjectName": {
+                    "Ref": "testDeployProject9CFC559F",
+                  },
+                },
+                "InputArtifacts": [
+                  {
+                    "Name": "BuildOutput",
+                  },
+                ],
+                "Name": "Deploy_To_Test",
+                "RoleArn": {
+                  "Fn::GetAtt": [
+                    "PipelineTestEnvironmentDeployToTestCodePipelineActionRole753AAD39",
+                    "Arn",
+                  ],
+                },
+                "RunOrder": 1,
+              },
+              {
+                "ActionTypeId": {
+                  "Category": "Build",
+                  "Owner": "AWS",
+                  "Provider": "CodeBuild",
+                  "Version": "1",
+                },
+                "Configuration": {
+                  "ProjectName": {
+                    "Ref": "IntegrationTestProject4574B32B",
+                  },
+                },
+                "InputArtifacts": [
+                  {
+                    "Name": "BuildOutput",
+                  },
+                ],
+                "Name": "Integration_Tests",
+                "RoleArn": {
+                  "Fn::GetAtt": [
+                    "PipelineTestEnvironmentIntegrationTestsCodePipelineActionRole9872B06C",
+                    "Arn",
+                  ],
+                },
+                "RunOrder": 2,
+              },
+            ],
+            "Name": "TestEnvironment",
+          },
+          {
+            "Actions": [
+              {
+                "ActionTypeId": {
+                  "Category": "Build",
+                  "Owner": "AWS",
+                  "Provider": "CodeBuild",
+                  "Version": "1",
+                },
+                "Configuration": {
+                  "ProjectName": {
+                    "Ref": "stagingDeployProjectF8EF6FA9",
+                  },
+                },
+                "InputArtifacts": [
+                  {
+                    "Name": "BuildOutput",
+                  },
+                ],
+                "Name": "Deploy_To_Staging",
+                "RoleArn": {
+                  "Fn::GetAtt": [
+                    "PipelineStagingEnvironmentDeployToStagingCodePipelineActionRole7D60C82A",
+                    "Arn",
+                  ],
+                },
+                "RunOrder": 1,
+              },
+              {
+                "ActionTypeId": {
+                  "Category": "Build",
+                  "Owner": "AWS",
+                  "Provider": "CodeBuild",
+                  "Version": "1",
+                },
+                "Configuration": {
+                  "ProjectName": {
+                    "Ref": "E2ETestProjectF7C50EFB",
+                  },
+                },
+                "InputArtifacts": [
+                  {
+                    "Name": "BuildOutput",
+                  },
+                ],
+                "Name": "E2E_Tests",
+                "RoleArn": {
+                  "Fn::GetAtt": [
+                    "PipelineStagingEnvironmentE2ETestsCodePipelineActionRole1B52C6A0",
+                    "Arn",
+                  ],
+                },
+                "RunOrder": 2,
+              },
+            ],
+            "Name": "StagingEnvironment",
+          },
+          {
+            "Actions": [
+              {
+                "ActionTypeId": {
+                  "Category": "Approval",
+                  "Owner": "AWS",
+                  "Provider": "Manual",
+                  "Version": "1",
+                },
+                "Configuration": {
+                  "CustomData": "Review test results and approve production deployment",
+                  "NotificationArn": {
+                    "Ref": "ApprovalTopic1D517B4C",
+                  },
+                },
+                "Name": "Approve_Production_Deployment",
+                "RoleArn": {
+                  "Fn::GetAtt": [
+                    "PipelineProductionEnvironmentApproveProductionDeploymentCodePipelineActionRoleFFDC4E06",
+                    "Arn",
+                  ],
+                },
+                "RunOrder": 1,
+              },
+              {
+                "ActionTypeId": {
+                  "Category": "Build",
+                  "Owner": "AWS",
+                  "Provider": "CodeBuild",
+                  "Version": "1",
+                },
+                "Configuration": {
+                  "ProjectName": {
+                    "Ref": "productionDeployProject4515A358",
+                  },
+                },
+                "InputArtifacts": [
+                  {
+                    "Name": "BuildOutput",
+                  },
+                ],
+                "Name": "Deploy_To_Production",
+                "RoleArn": {
+                  "Fn::GetAtt": [
+                    "PipelineProductionEnvironmentDeployToProductionCodePipelineActionRole4B6D3B26",
+                    "Arn",
+                  ],
+                },
+                "RunOrder": 2,
+              },
+            ],
+            "Name": "ProductionEnvironment",
+          },
+        ],
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "test",
+          },
+          {
+            "Key": "ManagedBy",
+            "Value": "CDK",
+          },
+          {
+            "Key": "Project",
+            "Value": "KiroPipeline",
+          },
+          {
+            "Key": "Stack",
+            "Value": "CDPipeline",
+          },
+        ],
+      },
+      "Type": "AWS::CodePipeline::Pipeline",
+    },
+    "PipelineProductionEnvironmentApproveProductionDeploymentCodePipelineActionRoleDefaultPolicy96986D0F": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sns:Publish",
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "ApprovalTopic1D517B4C",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "PipelineProductionEnvironmentApproveProductionDeploymentCodePipelineActionRoleDefaultPolicy96986D0F",
+        "Roles": [
+          {
+            "Ref": "PipelineProductionEnvironmentApproveProductionDeploymentCodePipelineActionRoleFFDC4E06",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "PipelineProductionEnvironmentApproveProductionDeploymentCodePipelineActionRoleFFDC4E06": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "AWS": {
+                  "Fn::GetAtt": [
+                    "PipelineRoleDCFDBB91",
+                    "Arn",
+                  ],
+                },
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "test",
+          },
+          {
+            "Key": "ManagedBy",
+            "Value": "CDK",
+          },
+          {
+            "Key": "Project",
+            "Value": "KiroPipeline",
+          },
+          {
+            "Key": "Stack",
+            "Value": "CDPipeline",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "PipelineProductionEnvironmentDeployToProductionCodePipelineActionRole4B6D3B26": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "AWS": {
+                  "Fn::GetAtt": [
+                    "PipelineRoleDCFDBB91",
+                    "Arn",
+                  ],
+                },
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "test",
+          },
+          {
+            "Key": "ManagedBy",
+            "Value": "CDK",
+          },
+          {
+            "Key": "Project",
+            "Value": "KiroPipeline",
+          },
+          {
+            "Key": "Stack",
+            "Value": "CDPipeline",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "PipelineProductionEnvironmentDeployToProductionCodePipelineActionRoleDefaultPolicy64D81CE8": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "codebuild:BatchGetBuilds",
+                "codebuild:StartBuild",
+                "codebuild:StopBuild",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "productionDeployProject4515A358",
+                  "Arn",
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "PipelineProductionEnvironmentDeployToProductionCodePipelineActionRoleDefaultPolicy64D81CE8",
+        "Roles": [
+          {
+            "Ref": "PipelineProductionEnvironmentDeployToProductionCodePipelineActionRole4B6D3B26",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "PipelineRoleDCFDBB91": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "codepipeline.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "Description": "IAM role for Kiro Pipeline test",
+        "RoleName": "kiro-pipeline-test-role",
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "test",
+          },
+          {
+            "Key": "ManagedBy",
+            "Value": "CDK",
+          },
+          {
+            "Key": "Project",
+            "Value": "KiroPipeline",
+          },
+          {
+            "Key": "Stack",
+            "Value": "CDPipeline",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "PipelineRoleDefaultPolicy77A82A74": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "codebuild:BatchGetBuilds",
+                "codebuild:StartBuild",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "BuildProjectF5CFF335",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Fn::GetAtt": [
+                    "IntegrationTestProject4574B32B",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Fn::GetAtt": [
+                    "E2ETestProjectF7C50EFB",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Fn::GetAtt": [
+                    "testDeployProject9CFC559F",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Fn::GetAtt": [
+                    "stagingDeployProjectF8EF6FA9",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Fn::GetAtt": [
+                    "productionDeployProject4515A358",
+                    "Arn",
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": [
+                "s3:GetObject",
+                "s3:GetObjectVersion",
+                "s3:PutObject",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    {
+                      "Fn::GetAtt": [
+                        "BuildProjectF5CFF335",
+                        "Arn",
+                      ],
+                    },
+                    "/*",
+                  ],
+                ],
+              },
+            },
+            {
+              "Action": [
+                "s3:GetBucketAcl",
+                "s3:GetBucketLocation",
+                "s3:ListBucket",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "BuildProjectF5CFF335",
+                  "Arn",
+                ],
+              },
+            },
+            {
+              "Action": [
+                "s3:GetObject*",
+                "s3:GetBucket*",
+                "s3:List*",
+                "s3:DeleteObject*",
+                "s3:PutObject",
+                "s3:PutObjectLegalHold",
+                "s3:PutObjectRetention",
+                "s3:PutObjectTagging",
+                "s3:PutObjectVersionTagging",
+                "s3:Abort*",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":s3:::test-artifacts-bucket",
+                    ],
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":s3:::test-artifacts-bucket/*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "PipelineBuildBuildTestSecurityScanCodePipelineActionRoleB65C2373",
+                  "Arn",
+                ],
+              },
+            },
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "PipelineTestEnvironmentDeployToTestCodePipelineActionRole753AAD39",
+                  "Arn",
+                ],
+              },
+            },
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "PipelineTestEnvironmentIntegrationTestsCodePipelineActionRole9872B06C",
+                  "Arn",
+                ],
+              },
+            },
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "PipelineStagingEnvironmentDeployToStagingCodePipelineActionRole7D60C82A",
+                  "Arn",
+                ],
+              },
+            },
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "PipelineStagingEnvironmentE2ETestsCodePipelineActionRole1B52C6A0",
+                  "Arn",
+                ],
+              },
+            },
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "PipelineProductionEnvironmentApproveProductionDeploymentCodePipelineActionRoleFFDC4E06",
+                  "Arn",
+                ],
+              },
+            },
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "PipelineProductionEnvironmentDeployToProductionCodePipelineActionRole4B6D3B26",
+                  "Arn",
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "PipelineRoleDefaultPolicy77A82A74",
+        "Roles": [
+          {
+            "Ref": "PipelineRoleDCFDBB91",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "PipelineSourceGitHubSourceWebhookResource8EECEFFF": {
+      "Properties": {
+        "Authentication": "GITHUB_HMAC",
+        "AuthenticationConfiguration": {
+          "SecretToken": {
+            "Fn::Join": [
+              "",
+              [
+                "{{resolve:secretsmanager:arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":secretsmanager:us-east-1:123456789012:secret:kiro-pipeline-test-github-token:SecretString:::}}",
+              ],
+            ],
+          },
+        },
+        "Filters": [
+          {
+            "JsonPath": "$.ref",
+            "MatchEquals": "refs/heads/{Branch}",
+          },
+        ],
+        "RegisterWithThirdParty": true,
+        "TargetAction": "GitHub_Source",
+        "TargetPipeline": {
+          "Ref": "PipelineC660917D",
+        },
+        "TargetPipelineVersion": 1,
+      },
+      "Type": "AWS::CodePipeline::Webhook",
+    },
+    "PipelineStagingEnvironmentDeployToStagingCodePipelineActionRole7D60C82A": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "AWS": {
+                  "Fn::GetAtt": [
+                    "PipelineRoleDCFDBB91",
+                    "Arn",
+                  ],
+                },
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "test",
+          },
+          {
+            "Key": "ManagedBy",
+            "Value": "CDK",
+          },
+          {
+            "Key": "Project",
+            "Value": "KiroPipeline",
+          },
+          {
+            "Key": "Stack",
+            "Value": "CDPipeline",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "PipelineStagingEnvironmentDeployToStagingCodePipelineActionRoleDefaultPolicy7BEC33CE": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "codebuild:BatchGetBuilds",
+                "codebuild:StartBuild",
+                "codebuild:StopBuild",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "stagingDeployProjectF8EF6FA9",
+                  "Arn",
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "PipelineStagingEnvironmentDeployToStagingCodePipelineActionRoleDefaultPolicy7BEC33CE",
+        "Roles": [
+          {
+            "Ref": "PipelineStagingEnvironmentDeployToStagingCodePipelineActionRole7D60C82A",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "PipelineStagingEnvironmentE2ETestsCodePipelineActionRole1B52C6A0": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "AWS": {
+                  "Fn::GetAtt": [
+                    "PipelineRoleDCFDBB91",
+                    "Arn",
+                  ],
+                },
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "test",
+          },
+          {
+            "Key": "ManagedBy",
+            "Value": "CDK",
+          },
+          {
+            "Key": "Project",
+            "Value": "KiroPipeline",
+          },
+          {
+            "Key": "Stack",
+            "Value": "CDPipeline",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "PipelineStagingEnvironmentE2ETestsCodePipelineActionRoleDefaultPolicy115B0BC6": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "codebuild:BatchGetBuilds",
+                "codebuild:StartBuild",
+                "codebuild:StopBuild",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "E2ETestProjectF7C50EFB",
+                  "Arn",
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "PipelineStagingEnvironmentE2ETestsCodePipelineActionRoleDefaultPolicy115B0BC6",
+        "Roles": [
+          {
+            "Ref": "PipelineStagingEnvironmentE2ETestsCodePipelineActionRole1B52C6A0",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "PipelineTestEnvironmentDeployToTestCodePipelineActionRole753AAD39": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "AWS": {
+                  "Fn::GetAtt": [
+                    "PipelineRoleDCFDBB91",
+                    "Arn",
+                  ],
+                },
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "test",
+          },
+          {
+            "Key": "ManagedBy",
+            "Value": "CDK",
+          },
+          {
+            "Key": "Project",
+            "Value": "KiroPipeline",
+          },
+          {
+            "Key": "Stack",
+            "Value": "CDPipeline",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "PipelineTestEnvironmentDeployToTestCodePipelineActionRoleDefaultPolicyA18A15D1": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "codebuild:BatchGetBuilds",
+                "codebuild:StartBuild",
+                "codebuild:StopBuild",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "testDeployProject9CFC559F",
+                  "Arn",
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "PipelineTestEnvironmentDeployToTestCodePipelineActionRoleDefaultPolicyA18A15D1",
+        "Roles": [
+          {
+            "Ref": "PipelineTestEnvironmentDeployToTestCodePipelineActionRole753AAD39",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "PipelineTestEnvironmentIntegrationTestsCodePipelineActionRole9872B06C": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "AWS": {
+                  "Fn::GetAtt": [
+                    "PipelineRoleDCFDBB91",
+                    "Arn",
+                  ],
+                },
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "test",
+          },
+          {
+            "Key": "ManagedBy",
+            "Value": "CDK",
+          },
+          {
+            "Key": "Project",
+            "Value": "KiroPipeline",
+          },
+          {
+            "Key": "Stack",
+            "Value": "CDPipeline",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "PipelineTestEnvironmentIntegrationTestsCodePipelineActionRoleDefaultPolicyE2A021DF": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "codebuild:BatchGetBuilds",
+                "codebuild:StartBuild",
+                "codebuild:StopBuild",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "IntegrationTestProject4574B32B",
+                  "Arn",
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "PipelineTestEnvironmentIntegrationTestsCodePipelineActionRoleDefaultPolicyE2A021DF",
+        "Roles": [
+          {
+            "Ref": "PipelineTestEnvironmentIntegrationTestsCodePipelineActionRole9872B06C",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "productionDeployProject4515A358": {
+      "Properties": {
+        "Artifacts": {
+          "Type": "NO_ARTIFACTS",
+        },
+        "Cache": {
+          "Modes": [
+            "LOCAL_SOURCE_CACHE",
+            "LOCAL_DOCKER_LAYER_CACHE",
+            "LOCAL_CUSTOM_CACHE",
+          ],
+          "Type": "LOCAL",
+        },
+        "Description": "CodeBuild project for test environment - kiro-pipeline-test-deploy-production",
+        "EncryptionKey": "alias/aws/s3",
+        "Environment": {
+          "ComputeType": "BUILD_GENERAL1_SMALL",
+          "EnvironmentVariables": [
+            {
+              "Name": "ENVIRONMENT",
+              "Type": "PLAINTEXT",
+              "Value": "production",
+            },
+            {
+              "Name": "DEPLOYMENT_TYPE",
+              "Type": "PLAINTEXT",
+              "Value": "application",
+            },
+          ],
+          "Image": "aws/codebuild/standard:7.0",
+          "ImagePullCredentialsType": "CODEBUILD",
+          "PrivilegedMode": false,
+          "Type": "LINUX_CONTAINER",
+        },
+        "LogsConfig": {
+          "CloudWatchLogs": {
+            "GroupName": {
+              "Ref": "productionDeployProjectLogGroupEB19066C",
+            },
+            "Status": "ENABLED",
+          },
+        },
+        "Name": "kiro-pipeline-test-deploy-production",
+        "QueuedTimeoutInMinutes": 480,
+        "ServiceRole": {
+          "Fn::GetAtt": [
+            "productionDeployProjectRole713007CE",
+            "Arn",
+          ],
+        },
+        "Source": {
+          "BuildSpec": "buildspec-deploy.yml",
+          "Location": "https://github.com/placeholder/placeholder.git",
+          "ReportBuildStatus": true,
+          "Type": "GITHUB",
+        },
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "test",
+          },
+          {
+            "Key": "ManagedBy",
+            "Value": "CDK",
+          },
+          {
+            "Key": "Project",
+            "Value": "KiroPipeline",
+          },
+          {
+            "Key": "Stack",
+            "Value": "CDPipeline",
+          },
+        ],
+        "TimeoutInMinutes": 60,
+        "Triggers": {
+          "Webhook": false,
+        },
+      },
+      "Type": "AWS::CodeBuild::Project",
+    },
+    "productionDeployProjectLogGroupEB19066C": {
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "LogGroupName": "/aws/codebuild/kiro-pipeline-test-deploy-production",
+        "RetentionInDays": 90,
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "test",
+          },
+          {
+            "Key": "ManagedBy",
+            "Value": "CDK",
+          },
+          {
+            "Key": "Project",
+            "Value": "KiroPipeline",
+          },
+          {
+            "Key": "Stack",
+            "Value": "CDPipeline",
+          },
+        ],
+      },
+      "Type": "AWS::Logs::LogGroup",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "productionDeployProjectRole713007CE": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "codebuild.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "Description": "IAM role for CodeBuild project kiro-pipeline-test-deploy-production",
+        "RoleName": "kiro-pipeline-test-deploy-production-role",
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "test",
+          },
+          {
+            "Key": "ManagedBy",
+            "Value": "CDK",
+          },
+          {
+            "Key": "Project",
+            "Value": "KiroPipeline",
+          },
+          {
+            "Key": "Stack",
+            "Value": "CDPipeline",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "productionDeployProjectRoleDefaultPolicyD821AA2F": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                "arn:aws:logs:us-east-1:123456789012:log-group:/aws/codebuild/kiro-pipeline-test-deploy-production",
+                "arn:aws:logs:us-east-1:123456789012:log-group:/aws/codebuild/kiro-pipeline-test-deploy-production:*",
+              ],
+            },
+            {
+              "Action": [
+                "s3:GetObject",
+                "s3:GetObjectVersion",
+                "s3:PutObject",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":s3:::test-artifacts-bucket/*",
+                  ],
+                ],
+              },
+            },
+            {
+              "Action": [
+                "s3:GetBucketAcl",
+                "s3:GetBucketLocation",
+                "s3:ListBucket",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":s3:::test-artifacts-bucket",
+                  ],
+                ],
+              },
+            },
+            {
+              "Action": "secretsmanager:GetSecretValue",
+              "Effect": "Allow",
+              "Resource": "arn:aws:secretsmanager:us-east-1:123456789012:secret:kiro-pipeline-test-*",
+            },
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Resource": "arn:aws:iam::123456789012:role/cdk-*",
+            },
+            {
+              "Action": [
+                "logs:CreateLogStream",
+                "logs:PutLogEvents",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "productionDeployProjectLogGroupEB19066C",
+                  "Arn",
+                ],
+              },
+            },
+            {
+              "Action": [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":logs:us-east-1:123456789012:log-group:/aws/codebuild/",
+                      {
+                        "Ref": "productionDeployProject4515A358",
+                      },
+                    ],
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":logs:us-east-1:123456789012:log-group:/aws/codebuild/",
+                      {
+                        "Ref": "productionDeployProject4515A358",
+                      },
+                      ":*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": [
+                "codebuild:CreateReportGroup",
+                "codebuild:CreateReport",
+                "codebuild:UpdateReport",
+                "codebuild:BatchPutTestCases",
+                "codebuild:BatchPutCodeCoverages",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":codebuild:us-east-1:123456789012:report-group/",
+                    {
+                      "Ref": "productionDeployProject4515A358",
+                    },
+                    "-*",
+                  ],
+                ],
+              },
+            },
+            {
+              "Action": [
+                "s3:GetObject*",
+                "s3:GetBucket*",
+                "s3:List*",
+                "s3:DeleteObject*",
+                "s3:PutObject",
+                "s3:PutObjectLegalHold",
+                "s3:PutObjectRetention",
+                "s3:PutObjectTagging",
+                "s3:PutObjectVersionTagging",
+                "s3:Abort*",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":s3:::test-artifacts-bucket",
+                    ],
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":s3:::test-artifacts-bucket/*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": [
+                "s3:GetObject*",
+                "s3:GetBucket*",
+                "s3:List*",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":s3:::test-artifacts-bucket",
+                    ],
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":s3:::test-artifacts-bucket/*",
+                    ],
+                  ],
+                },
+              ],
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "productionDeployProjectRoleDefaultPolicyD821AA2F",
+        "Roles": [
+          {
+            "Ref": "productionDeployProjectRole713007CE",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "stagingDeployProjectF8EF6FA9": {
+      "Properties": {
+        "Artifacts": {
+          "Type": "NO_ARTIFACTS",
+        },
+        "Cache": {
+          "Modes": [
+            "LOCAL_SOURCE_CACHE",
+            "LOCAL_DOCKER_LAYER_CACHE",
+            "LOCAL_CUSTOM_CACHE",
+          ],
+          "Type": "LOCAL",
+        },
+        "Description": "CodeBuild project for test environment - kiro-pipeline-test-deploy-staging",
+        "EncryptionKey": "alias/aws/s3",
+        "Environment": {
+          "ComputeType": "BUILD_GENERAL1_SMALL",
+          "EnvironmentVariables": [
+            {
+              "Name": "ENVIRONMENT",
+              "Type": "PLAINTEXT",
+              "Value": "staging",
+            },
+            {
+              "Name": "DEPLOYMENT_TYPE",
+              "Type": "PLAINTEXT",
+              "Value": "application",
+            },
+          ],
+          "Image": "aws/codebuild/standard:7.0",
+          "ImagePullCredentialsType": "CODEBUILD",
+          "PrivilegedMode": false,
+          "Type": "LINUX_CONTAINER",
+        },
+        "LogsConfig": {
+          "CloudWatchLogs": {
+            "GroupName": {
+              "Ref": "stagingDeployProjectLogGroupF5E34C4F",
+            },
+            "Status": "ENABLED",
+          },
+        },
+        "Name": "kiro-pipeline-test-deploy-staging",
+        "QueuedTimeoutInMinutes": 480,
+        "ServiceRole": {
+          "Fn::GetAtt": [
+            "stagingDeployProjectRoleE6D812A3",
+            "Arn",
+          ],
+        },
+        "Source": {
+          "BuildSpec": "buildspec-deploy.yml",
+          "Location": "https://github.com/placeholder/placeholder.git",
+          "ReportBuildStatus": true,
+          "Type": "GITHUB",
+        },
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "test",
+          },
+          {
+            "Key": "ManagedBy",
+            "Value": "CDK",
+          },
+          {
+            "Key": "Project",
+            "Value": "KiroPipeline",
+          },
+          {
+            "Key": "Stack",
+            "Value": "CDPipeline",
+          },
+        ],
+        "TimeoutInMinutes": 60,
+        "Triggers": {
+          "Webhook": false,
+        },
+      },
+      "Type": "AWS::CodeBuild::Project",
+    },
+    "stagingDeployProjectLogGroupF5E34C4F": {
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "LogGroupName": "/aws/codebuild/kiro-pipeline-test-deploy-staging",
+        "RetentionInDays": 90,
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "test",
+          },
+          {
+            "Key": "ManagedBy",
+            "Value": "CDK",
+          },
+          {
+            "Key": "Project",
+            "Value": "KiroPipeline",
+          },
+          {
+            "Key": "Stack",
+            "Value": "CDPipeline",
+          },
+        ],
+      },
+      "Type": "AWS::Logs::LogGroup",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "stagingDeployProjectRoleDefaultPolicy79B8BDCC": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                "arn:aws:logs:us-east-1:123456789012:log-group:/aws/codebuild/kiro-pipeline-test-deploy-staging",
+                "arn:aws:logs:us-east-1:123456789012:log-group:/aws/codebuild/kiro-pipeline-test-deploy-staging:*",
+              ],
+            },
+            {
+              "Action": [
+                "s3:GetObject",
+                "s3:GetObjectVersion",
+                "s3:PutObject",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":s3:::test-artifacts-bucket/*",
+                  ],
+                ],
+              },
+            },
+            {
+              "Action": [
+                "s3:GetBucketAcl",
+                "s3:GetBucketLocation",
+                "s3:ListBucket",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":s3:::test-artifacts-bucket",
+                  ],
+                ],
+              },
+            },
+            {
+              "Action": "secretsmanager:GetSecretValue",
+              "Effect": "Allow",
+              "Resource": "arn:aws:secretsmanager:us-east-1:123456789012:secret:kiro-pipeline-test-*",
+            },
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Resource": "arn:aws:iam::123456789012:role/cdk-*",
+            },
+            {
+              "Action": [
+                "logs:CreateLogStream",
+                "logs:PutLogEvents",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "stagingDeployProjectLogGroupF5E34C4F",
+                  "Arn",
+                ],
+              },
+            },
+            {
+              "Action": [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":logs:us-east-1:123456789012:log-group:/aws/codebuild/",
+                      {
+                        "Ref": "stagingDeployProjectF8EF6FA9",
+                      },
+                    ],
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":logs:us-east-1:123456789012:log-group:/aws/codebuild/",
+                      {
+                        "Ref": "stagingDeployProjectF8EF6FA9",
+                      },
+                      ":*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": [
+                "codebuild:CreateReportGroup",
+                "codebuild:CreateReport",
+                "codebuild:UpdateReport",
+                "codebuild:BatchPutTestCases",
+                "codebuild:BatchPutCodeCoverages",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":codebuild:us-east-1:123456789012:report-group/",
+                    {
+                      "Ref": "stagingDeployProjectF8EF6FA9",
+                    },
+                    "-*",
+                  ],
+                ],
+              },
+            },
+            {
+              "Action": [
+                "s3:GetObject*",
+                "s3:GetBucket*",
+                "s3:List*",
+                "s3:DeleteObject*",
+                "s3:PutObject",
+                "s3:PutObjectLegalHold",
+                "s3:PutObjectRetention",
+                "s3:PutObjectTagging",
+                "s3:PutObjectVersionTagging",
+                "s3:Abort*",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":s3:::test-artifacts-bucket",
+                    ],
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":s3:::test-artifacts-bucket/*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": [
+                "s3:GetObject*",
+                "s3:GetBucket*",
+                "s3:List*",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":s3:::test-artifacts-bucket",
+                    ],
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":s3:::test-artifacts-bucket/*",
+                    ],
+                  ],
+                },
+              ],
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "stagingDeployProjectRoleDefaultPolicy79B8BDCC",
+        "Roles": [
+          {
+            "Ref": "stagingDeployProjectRoleE6D812A3",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "stagingDeployProjectRoleE6D812A3": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "codebuild.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "Description": "IAM role for CodeBuild project kiro-pipeline-test-deploy-staging",
+        "RoleName": "kiro-pipeline-test-deploy-staging-role",
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "test",
+          },
+          {
+            "Key": "ManagedBy",
+            "Value": "CDK",
+          },
+          {
+            "Key": "Project",
+            "Value": "KiroPipeline",
+          },
+          {
+            "Key": "Stack",
+            "Value": "CDPipeline",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "testDeployProject9CFC559F": {
+      "Properties": {
+        "Artifacts": {
+          "Type": "NO_ARTIFACTS",
+        },
+        "Cache": {
+          "Modes": [
+            "LOCAL_SOURCE_CACHE",
+            "LOCAL_DOCKER_LAYER_CACHE",
+            "LOCAL_CUSTOM_CACHE",
+          ],
+          "Type": "LOCAL",
+        },
+        "Description": "CodeBuild project for test environment - kiro-pipeline-test-deploy-test",
+        "EncryptionKey": "alias/aws/s3",
+        "Environment": {
+          "ComputeType": "BUILD_GENERAL1_SMALL",
+          "EnvironmentVariables": [
+            {
+              "Name": "ENVIRONMENT",
+              "Type": "PLAINTEXT",
+              "Value": "test",
+            },
+            {
+              "Name": "DEPLOYMENT_TYPE",
+              "Type": "PLAINTEXT",
+              "Value": "application",
+            },
+          ],
+          "Image": "aws/codebuild/standard:7.0",
+          "ImagePullCredentialsType": "CODEBUILD",
+          "PrivilegedMode": false,
+          "Type": "LINUX_CONTAINER",
+        },
+        "LogsConfig": {
+          "CloudWatchLogs": {
+            "GroupName": {
+              "Ref": "testDeployProjectLogGroup1B7FF532",
+            },
+            "Status": "ENABLED",
+          },
+        },
+        "Name": "kiro-pipeline-test-deploy-test",
+        "QueuedTimeoutInMinutes": 480,
+        "ServiceRole": {
+          "Fn::GetAtt": [
+            "testDeployProjectRoleD1DC2DFC",
+            "Arn",
+          ],
+        },
+        "Source": {
+          "BuildSpec": "buildspec-deploy.yml",
+          "Location": "https://github.com/placeholder/placeholder.git",
+          "ReportBuildStatus": true,
+          "Type": "GITHUB",
+        },
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "test",
+          },
+          {
+            "Key": "ManagedBy",
+            "Value": "CDK",
+          },
+          {
+            "Key": "Project",
+            "Value": "KiroPipeline",
+          },
+          {
+            "Key": "Stack",
+            "Value": "CDPipeline",
+          },
+        ],
+        "TimeoutInMinutes": 60,
+        "Triggers": {
+          "Webhook": false,
+        },
+      },
+      "Type": "AWS::CodeBuild::Project",
+    },
+    "testDeployProjectLogGroup1B7FF532": {
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "LogGroupName": "/aws/codebuild/kiro-pipeline-test-deploy-test",
+        "RetentionInDays": 90,
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "test",
+          },
+          {
+            "Key": "ManagedBy",
+            "Value": "CDK",
+          },
+          {
+            "Key": "Project",
+            "Value": "KiroPipeline",
+          },
+          {
+            "Key": "Stack",
+            "Value": "CDPipeline",
+          },
+        ],
+      },
+      "Type": "AWS::Logs::LogGroup",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "testDeployProjectRoleD1DC2DFC": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "codebuild.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "Description": "IAM role for CodeBuild project kiro-pipeline-test-deploy-test",
+        "RoleName": "kiro-pipeline-test-deploy-test-role",
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "test",
+          },
+          {
+            "Key": "ManagedBy",
+            "Value": "CDK",
+          },
+          {
+            "Key": "Project",
+            "Value": "KiroPipeline",
+          },
+          {
+            "Key": "Stack",
+            "Value": "CDPipeline",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "testDeployProjectRoleDefaultPolicy92844613": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                "arn:aws:logs:us-east-1:123456789012:log-group:/aws/codebuild/kiro-pipeline-test-deploy-test",
+                "arn:aws:logs:us-east-1:123456789012:log-group:/aws/codebuild/kiro-pipeline-test-deploy-test:*",
+              ],
+            },
+            {
+              "Action": [
+                "s3:GetObject",
+                "s3:GetObjectVersion",
+                "s3:PutObject",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":s3:::test-artifacts-bucket/*",
+                  ],
+                ],
+              },
+            },
+            {
+              "Action": [
+                "s3:GetBucketAcl",
+                "s3:GetBucketLocation",
+                "s3:ListBucket",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":s3:::test-artifacts-bucket",
+                  ],
+                ],
+              },
+            },
+            {
+              "Action": "secretsmanager:GetSecretValue",
+              "Effect": "Allow",
+              "Resource": "arn:aws:secretsmanager:us-east-1:123456789012:secret:kiro-pipeline-test-*",
+            },
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Resource": "arn:aws:iam::123456789012:role/cdk-*",
+            },
+            {
+              "Action": [
+                "logs:CreateLogStream",
+                "logs:PutLogEvents",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "testDeployProjectLogGroup1B7FF532",
+                  "Arn",
+                ],
+              },
+            },
+            {
+              "Action": [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":logs:us-east-1:123456789012:log-group:/aws/codebuild/",
+                      {
+                        "Ref": "testDeployProject9CFC559F",
+                      },
+                    ],
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":logs:us-east-1:123456789012:log-group:/aws/codebuild/",
+                      {
+                        "Ref": "testDeployProject9CFC559F",
+                      },
+                      ":*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": [
+                "codebuild:CreateReportGroup",
+                "codebuild:CreateReport",
+                "codebuild:UpdateReport",
+                "codebuild:BatchPutTestCases",
+                "codebuild:BatchPutCodeCoverages",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":codebuild:us-east-1:123456789012:report-group/",
+                    {
+                      "Ref": "testDeployProject9CFC559F",
+                    },
+                    "-*",
+                  ],
+                ],
+              },
+            },
+            {
+              "Action": [
+                "s3:GetObject*",
+                "s3:GetBucket*",
+                "s3:List*",
+                "s3:DeleteObject*",
+                "s3:PutObject",
+                "s3:PutObjectLegalHold",
+                "s3:PutObjectRetention",
+                "s3:PutObjectTagging",
+                "s3:PutObjectVersionTagging",
+                "s3:Abort*",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":s3:::test-artifacts-bucket",
+                    ],
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":s3:::test-artifacts-bucket/*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": [
+                "s3:GetObject*",
+                "s3:GetBucket*",
+                "s3:List*",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":s3:::test-artifacts-bucket",
+                    ],
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":s3:::test-artifacts-bucket/*",
+                    ],
+                  ],
+                },
+              ],
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "testDeployProjectRoleDefaultPolicy92844613",
+        "Roles": [
+          {
+            "Ref": "testDeployProjectRoleD1DC2DFC",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+  },
+  "Rules": {
+    "CheckBootstrapVersion": {
+      "Assertions": [
+        {
+          "Assert": {
+            "Fn::Not": [
+              {
+                "Fn::Contains": [
+                  [
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5",
+                  ],
+                  {
+                    "Ref": "BootstrapVersion",
+                  },
+                ],
+              },
+            ],
+          },
+          "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI.",
+        },
+      ],
+    },
+  },
+}
+`;

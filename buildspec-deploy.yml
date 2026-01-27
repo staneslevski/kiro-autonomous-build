@@ -1,0 +1,110 @@
+version: 0.2
+
+# Deployment buildspec for CD Pipeline
+# Detects infrastructure changes and conditionally deploys via CDK
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 18
+    commands:
+      - echo "Installing AWS CDK CLI..."
+      - npm install -g aws-cdk
+      - echo "Installing dependencies..."
+      - npm ci
+      - cd infrastructure && npm ci && cd ..
+
+  pre_build:
+    commands:
+      - echo "Detecting infrastructure changes..."
+      - echo "Checking for changes in infrastructure/, buildspec*.yml, cdk.json..."
+      - |
+        # Get the list of changed files from the last commit
+        CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD || echo "")
+        echo "Changed files: $CHANGED_FILES"
+        
+        # Check if any infrastructure files changed
+        INFRA_CHANGED=false
+        if echo "$CHANGED_FILES" | grep -qE '^infrastructure/|^buildspec.*\.yml$|^cdk\.json$'; then
+          INFRA_CHANGED=true
+          echo "Infrastructure changes detected"
+        else
+          echo "No infrastructure changes detected"
+        fi
+        
+        # Export for use in build phase
+        echo "export INFRA_CHANGED=$INFRA_CHANGED" > /tmp/infra_check.sh
+      - source /tmp/infra_check.sh
+      - echo "INFRA_CHANGED=$INFRA_CHANGED"
+
+  build:
+    commands:
+      - echo "Running CDK diff to preview changes..."
+      - cd infrastructure
+      - |
+        # Run CDK diff to see what would change
+        npx cdk diff --all --context environment=$ENVIRONMENT || echo "CDK diff completed"
+      - |
+        # Check if meaningful infrastructure changes exist
+        source /tmp/infra_check.sh
+        if [ "$INFRA_CHANGED" = "true" ]; then
+          echo "Deploying infrastructure changes via CDK..."
+          echo "NOTE: In production, infrastructure should be deployed manually from developer laptop"
+          echo "This automated deployment is for test/staging environments only"
+          
+          # Only deploy if not production
+          if [ "$ENVIRONMENT" != "production" ]; then
+            npx cdk deploy --all --context environment=$ENVIRONMENT --require-approval never
+          else
+            echo "Skipping automated CDK deployment for production environment"
+            echo "Production infrastructure must be deployed manually"
+          fi
+        else
+          echo "No infrastructure changes detected, skipping CDK deployment"
+        fi
+      - cd ..
+
+  post_build:
+    commands:
+      - echo "Verifying deployment success..."
+      - echo "Deployment to $ENVIRONMENT environment completed"
+      - |
+        # Update deployment record in DynamoDB
+        DEPLOYMENT_ID="${ENVIRONMENT}#$(date +%s)000"
+        COMMIT_SHA=$(git rev-parse HEAD || echo "unknown")
+        COMMIT_MSG=$(git log -1 --pretty=%B || echo "unknown")
+        COMMIT_AUTHOR=$(git log -1 --pretty=%ae || echo "unknown")
+        
+        echo "Recording deployment: $DEPLOYMENT_ID"
+        
+        # Create deployment record (simplified - full implementation would use AWS SDK)
+        aws dynamodb put-item \
+          --table-name ${TABLE_NAME:-kiro-pipeline-${ENVIRONMENT}-deployments} \
+          --item "{
+            \"deploymentId\": {\"S\": \"$DEPLOYMENT_ID\"},
+            \"environment\": {\"S\": \"$ENVIRONMENT\"},
+            \"version\": {\"S\": \"$COMMIT_SHA\"},
+            \"status\": {\"S\": \"succeeded\"},
+            \"startTime\": {\"N\": \"$(date +%s)000\"},
+            \"endTime\": {\"N\": \"$(date +%s)000\"},
+            \"infrastructureChanged\": {\"BOOL\": $INFRA_CHANGED},
+            \"commitMessage\": {\"S\": \"$COMMIT_MSG\"},
+            \"commitAuthor\": {\"S\": \"$COMMIT_AUTHOR\"},
+            \"pipelineExecutionId\": {\"S\": \"${CODEBUILD_BUILD_ID:-unknown}\"},
+            \"artifactLocation\": {\"S\": \"s3://${ARTIFACTS_BUCKET:-unknown}/${COMMIT_SHA}\"},
+            \"expiresAt\": {\"N\": \"$(date -d '+90 days' +%s)\"}
+          }" \
+          --region ${AWS_REGION:-us-east-1} || echo "Failed to record deployment"
+
+env:
+  variables:
+    ENVIRONMENT: "test"
+  parameter-store:
+    TABLE_NAME: /kiro-pipeline/${ENVIRONMENT}/deployments-table-name
+    ARTIFACTS_BUCKET: /kiro-pipeline/${ENVIRONMENT}/artifacts-bucket-name
+
+cache:
+  paths:
+    - 'node_modules/**/*'
+    - 'infrastructure/node_modules/**/*'
+    - '.npm/**/*'

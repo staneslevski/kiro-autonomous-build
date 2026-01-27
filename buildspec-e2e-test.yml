@@ -1,0 +1,35 @@
+version: 0.2
+
+# End-to-end test buildspec for CD Pipeline
+# Runs E2E tests after staging environment deployment
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 18
+    commands:
+      - echo "Restoring dependencies..."
+      - npm ci
+
+  build:
+    commands:
+      - echo "Running end-to-end tests..."
+      - echo "Environment: $ENVIRONMENT"
+      - npm run test:e2e
+      - echo "E2E tests completed"
+
+  post_build:
+    commands:
+      - echo "E2E test results:"
+      - cat test-results/e2e-junit.xml || echo "No test results file found"
+
+reports:
+  e2e-results:
+    files:
+      - 'test-results/e2e-junit.xml'
+    file-format: 'JUNITXML'
+
+cache:
+  paths:
+    - 'node_modules/**/*'
+    - '.npm/**/*'

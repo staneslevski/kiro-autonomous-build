@@ -1,0 +1,216 @@
+# AWS CloudFormation Guard Rules for CD Pipeline Security
+# These rules enforce security best practices on infrastructure templates
+
+# Rule 1: S3 Bucket Encryption
+# All S3 buckets must have server-side encryption enabled
+rule s3_bucket_encryption {
+  Resources.*[ Type == 'AWS::S3::Bucket' ] {
+    Properties {
+      # Bucket encryption configuration must exist
+      BucketEncryption exists
+      <<
+        Violation: S3 bucket must have encryption enabled
+        Fix: Add BucketEncryption with ServerSideEncryptionConfiguration
+      >>
+      
+      # Encryption must use AES256 or aws:kms
+      BucketEncryption.ServerSideEncryptionConfiguration[*] {
+        ServerSideEncryptionByDefault.SSEAlgorithm in ['AES256', 'aws:kms']
+        <<
+          Violation: S3 bucket must use AES256 or aws:kms encryption
+          Fix: Set SSEAlgorithm to 'AES256' or 'aws:kms'
+        >>
+      }
+    }
+  }
+}
+
+# Rule 2: S3 Bucket Public Access Block
+# All S3 buckets must block public access
+rule s3_bucket_public_access {
+  Resources.*[ Type == 'AWS::S3::Bucket' ] {
+    Properties {
+      # Public access block configuration must exist
+      PublicAccessBlockConfiguration exists
+      <<
+        Violation: S3 bucket must have PublicAccessBlockConfiguration
+        Fix: Add PublicAccessBlockConfiguration with all settings set to true
+      >>
+      
+      # All public access must be blocked
+      PublicAccessBlockConfiguration {
+        BlockPublicAcls == true
+        <<
+          Violation: S3 bucket must block public ACLs
+          Fix: Set BlockPublicAcls to true
+        >>
+        
+        BlockPublicPolicy == true
+        <<
+          Violation: S3 bucket must block public policies
+          Fix: Set BlockPublicPolicy to true
+        >>
+        
+        IgnorePublicAcls == true
+        <<
+          Violation: S3 bucket must ignore public ACLs
+          Fix: Set IgnorePublicAcls to true
+        >>
+        
+        RestrictPublicBuckets == true
+        <<
+          Violation: S3 bucket must restrict public buckets
+          Fix: Set RestrictPublicBuckets to true
+        >>
+      }
+    }
+  }
+}
+
+# Rule 3: DynamoDB Table Encryption
+# All DynamoDB tables must have encryption at rest enabled
+rule dynamodb_encryption {
+  Resources.*[ Type == 'AWS::DynamoDB::Table' ] {
+    Properties {
+      # SSE specification must exist
+      SSESpecification exists
+      <<
+        Violation: DynamoDB table must have encryption enabled
+        Fix: Add SSESpecification with SSEEnabled set to true
+      >>
+      
+      # Encryption must be enabled
+      SSESpecification.SSEEnabled == true
+      <<
+        Violation: DynamoDB table encryption must be enabled
+        Fix: Set SSESpecification.SSEEnabled to true
+      >>
+    }
+  }
+}
+
+# Rule 4: Lambda Function Dead Letter Queue
+# All Lambda functions must have a Dead Letter Queue configured
+rule lambda_dlq {
+  Resources.*[ Type == 'AWS::Lambda::Function' ] {
+    Properties {
+      # Dead letter config must exist
+      DeadLetterConfig exists
+      <<
+        Violation: Lambda function must have Dead Letter Queue configured
+        Fix: Add DeadLetterConfig with TargetArn pointing to SQS queue or SNS topic
+        Rationale: DLQ ensures failed invocations are captured for debugging
+      >>
+    }
+  }
+}
+
+# Rule 5: IAM Role Wildcard Permissions
+# IAM roles must not have wildcard permissions for actions or resources
+rule iam_no_wildcard {
+  Resources.*[ Type == 'AWS::IAM::Role' ] {
+    Properties.Policies[*].PolicyDocument.Statement[*] {
+      # When Action is wildcard, Effect must not be Allow
+      when Action == '*' {
+        Effect != 'Allow'
+        <<
+          Violation: IAM role must not have wildcard (*) actions with Allow effect
+          Fix: Specify explicit actions instead of using '*'
+          Rationale: Wildcard actions violate least privilege principle
+        >>
+      }
+      
+      # When Resource is wildcard, Effect must not be Allow
+      when Resource == '*' {
+        Effect != 'Allow'
+        <<
+          Violation: IAM role must not have wildcard (*) resources with Allow effect
+          Fix: Specify explicit resource ARNs instead of using '*'
+          Rationale: Wildcard resources violate least privilege principle
+        >>
+      }
+    }
+  }
+}
+
+# Rule 6: CloudWatch Log Group Retention
+# CloudWatch log groups should have retention period set
+rule cloudwatch_log_retention {
+  Resources.*[ Type == 'AWS::Logs::LogGroup' ] {
+    Properties {
+      # Retention in days should be set
+      RetentionInDays exists
+      <<
+        Violation: CloudWatch log group should have retention period set
+        Fix: Add RetentionInDays property (recommended: 7, 30, 90, or 365 days)
+        Rationale: Prevents indefinite log storage and reduces costs
+      >>
+    }
+  }
+}
+
+# Rule 7: KMS Key Rotation
+# KMS keys should have automatic rotation enabled
+rule kms_key_rotation {
+  Resources.*[ Type == 'AWS::KMS::Key' ] {
+    Properties {
+      # Key rotation should be enabled
+      EnableKeyRotation == true
+      <<
+        Violation: KMS key should have automatic rotation enabled
+        Fix: Set EnableKeyRotation to true
+        Rationale: Regular key rotation is a security best practice
+      >>
+    }
+  }
+}
+
+# Rule 8: CodeBuild Project Encryption
+# CodeBuild projects should use encryption for artifacts
+rule codebuild_encryption {
+  Resources.*[ Type == 'AWS::CodeBuild::Project' ] {
+    Properties {
+      # Artifacts should be encrypted
+      when Artifacts exists {
+        Artifacts.EncryptionDisabled != true
+        <<
+          Violation: CodeBuild artifacts should be encrypted
+          Fix: Remove EncryptionDisabled or set it to false
+          Rationale: Artifacts may contain sensitive information
+        >>
+      }
+    }
+  }
+}
+
+# Rule 9: Secrets Manager Secret Encryption
+# Secrets Manager secrets should use KMS encryption
+rule secrets_manager_encryption {
+  Resources.*[ Type == 'AWS::SecretsManager::Secret' ] {
+    Properties {
+      # KMS key ID should be specified
+      KmsKeyId exists
+      <<
+        Violation: Secrets Manager secret should use KMS encryption
+        Fix: Add KmsKeyId property with KMS key ARN
+        Rationale: KMS provides better key management and audit capabilities
+      >>
+    }
+  }
+}
+
+# Rule 10: SNS Topic Encryption
+# SNS topics should have encryption enabled
+rule sns_topic_encryption {
+  Resources.*[ Type == 'AWS::SNS::Topic' ] {
+    Properties {
+      # KMS master key ID should be specified
+      KmsMasterKeyId exists
+      <<
+        Violation: SNS topic should have encryption enabled
+        Fix: Add KmsMasterKeyId property with KMS key ID or alias
+        Rationale: Encrypts messages at rest in SNS
+      >>
+    }
+  }
+}

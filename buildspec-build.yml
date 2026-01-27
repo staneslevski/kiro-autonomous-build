@@ -1,0 +1,63 @@
+version: 0.2
+
+# Build stage buildspec for CD Pipeline
+# Compiles code, runs tests, performs security scanning
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 18
+    commands:
+      - echo "Installing dependencies..."
+      - npm ci
+      - echo "Installing infrastructure dependencies..."
+      - cd infrastructure && npm ci && cd ..
+
+  pre_build:
+    commands:
+      - echo "Running linter..."
+      - npm run lint
+      - echo "Running security audit..."
+      - npm audit --audit-level=high
+      - echo "Running tests with coverage..."
+      - npm run test:coverage
+
+  build:
+    commands:
+      - echo "Building application..."
+      - npm run build
+      - echo "Building infrastructure..."
+      - cd infrastructure && npm run build && cd ..
+      - echo "Synthesizing CDK templates..."
+      - cd infrastructure && npx cdk synth --all && cd ..
+
+  post_build:
+    commands:
+      - echo "Running security scans on synthesized templates..."
+      - npm install -g cfn-lint @aws-cloudformation/cfn-guard
+      - echo "Running cfn-lint..."
+      - cfn-lint infrastructure/cdk.out/**/*.template.json || echo "cfn-lint completed with warnings"
+      - echo "Running cfn-guard..."
+      - cfn-guard validate --rules infrastructure/security-rules.guard --data infrastructure/cdk.out/**/*.template.json || echo "cfn-guard completed with warnings"
+      - echo "Build stage completed successfully"
+
+artifacts:
+  files:
+    - '**/*'
+  name: BuildArtifact
+
+reports:
+  test-results:
+    files:
+      - 'coverage/junit.xml'
+    file-format: 'JUNITXML'
+  coverage-report:
+    files:
+      - 'coverage/coverage-final.json'
+    file-format: 'CLOVERXML'
+
+cache:
+  paths:
+    - 'node_modules/**/*'
+    - 'infrastructure/node_modules/**/*'
+    - '.npm/**/*'

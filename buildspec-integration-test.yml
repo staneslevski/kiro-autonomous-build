@@ -1,0 +1,35 @@
+version: 0.2
+
+# Integration test buildspec for CD Pipeline
+# Runs integration tests after test environment deployment
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 18
+    commands:
+      - echo "Restoring dependencies from cache..."
+      - npm ci
+
+  build:
+    commands:
+      - echo "Running integration tests..."
+      - echo "Environment: $ENVIRONMENT"
+      - npm run test:integration
+      - echo "Integration tests completed"
+
+  post_build:
+    commands:
+      - echo "Integration test results:"
+      - cat test-results/integration-junit.xml || echo "No test results file found"
+
+reports:
+  integration-results:
+    files:
+      - 'test-results/integration-junit.xml'
+    file-format: 'JUNITXML'
+
+cache:
+  paths:
+    - 'node_modules/**/*'
+    - '.npm/**/*'
