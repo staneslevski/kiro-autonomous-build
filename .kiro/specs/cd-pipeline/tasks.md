@@ -14,13 +14,13 @@ This task list implements a CD pipeline for the Kiro CodeBuild Worker project. T
 ## Phase 1: Core Infrastructure and Type Definitions
 
 ### 1. Type Definitions
-- [ ] 1.1 Create `infrastructure/lib/types/` directory and type definition files
+- [x] 1.1 Create `infrastructure/lib/types/` directory and type definition files
   - Create `infrastructure/lib/types/pipeline-types.ts` with DeploymentRecord, Environment, DeploymentStatus, RollbackLevel, HealthCheckResult, AlarmInfo, TestResults, SecurityViolation, FailedTest interfaces
   - Create `infrastructure/lib/types/pipeline-config.ts` with PipelineConfig, PipelineEnvironmentConfig, BuildConfig, MonitoringConfig interfaces
   - Create `infrastructure/lib/types/index.ts` to export all types
   - **Validates**: Design Section 4, TR-2
 
-- [ ] 1.2 Write unit tests for type definitions
+- [x] 1.2 Write unit tests for type definitions
   - Create `infrastructure/test/types/pipeline-types.test.ts`
   - Test type guards and validation functions if any
   - Test type compatibility and structure
@@ -28,14 +28,14 @@ This task list implements a CD pipeline for the Kiro CodeBuild Worker project. T
   - **Validates**: NFR-4
 
 ### 2. Environment Configuration Extension
-- [ ] 2.1 Extend `infrastructure/lib/config/environments.ts` with CD pipeline configuration
+- [x] 2.1 Extend `infrastructure/lib/config/environments.ts` with CD pipeline configuration
   - Add pipeline-specific fields to EnvironmentConfig interface (githubOwner, githubRepo, healthCheckDuration, alarmPrefixes, pipelineEnabled)
   - Update test environment with pipeline settings (healthCheckDuration: 5 minutes, pipelineEnabled: true)
   - Update staging environment with pipeline settings (healthCheckDuration: 5 minutes, pipelineEnabled: true)
   - Update production environment with stricter settings (healthCheckDuration: 10 minutes, pipelineEnabled: true)
   - **Validates**: TR-2
 
-- [ ] 2.2 Update environment configuration tests
+- [x] 2.2 Update environment configuration tests
   - Update `infrastructure/test/config/environments.test.ts` to test new pipeline fields
   - Test that all environments have required pipeline configuration
   - Test validation of pipeline-specific fields
@@ -43,7 +43,7 @@ This task list implements a CD pipeline for the Kiro CodeBuild Worker project. T
   - **Validates**: NFR-4
 
 ### 3. CD Pipeline Core Infrastructure Stack
-- [ ] 3.1 Create `infrastructure/lib/stacks/cd-pipeline-core-stack.ts`
+- [x] 3.1 Create `infrastructure/lib/stacks/cd-pipeline-core-stack.ts`
   - Create S3 artifacts bucket for pipeline with encryption (KMS), versioning, lifecycle policies (90 day expiration, 30 day IA transition), and public access blocked
   - Create DynamoDB deployments table with partition key (deploymentId), TTL attribute (expiresAt), GSI (EnvironmentStatusIndex with environment as PK and status as SK), point-in-time recovery, and encryption
   - Create KMS encryption key with rotation enabled for pipeline resources
@@ -51,7 +51,7 @@ This task list implements a CD pipeline for the Kiro CodeBuild Worker project. T
   - Export stack outputs (artifactsBucketArn, artifactsBucketName, deploymentsTableName, deploymentsTableArn, kmsKeyArn, pipelineLogGroupName, rollbackLogGroupName)
   - **Validates**: TR-1, TR-5, NFR-2
 
-- [ ] 3.2 Write unit tests for CD Pipeline Core Infrastructure Stack
+- [x] 3.2 Write unit tests for CD Pipeline Core Infrastructure Stack
   - Create `infrastructure/test/stacks/cd-pipeline-core-stack.test.ts`
   - Test S3 bucket has KMS encryption, versioning, lifecycle rules, and public access blocked
   - Test DynamoDB table has TTL, GSI, point-in-time recovery, and encryption
@@ -66,7 +66,7 @@ This task list implements a CD pipeline for the Kiro CodeBuild Worker project. T
 ## Phase 2: Pipeline Infrastructure
 
 ### 4. Pipeline CodeBuild Construct
-- [ ] 4.1 Create `infrastructure/lib/constructs/pipeline-codebuild-construct.ts`
+- [x] 4.1 Create `infrastructure/lib/constructs/pipeline-codebuild-construct.ts`
   - Create reusable CodeBuild project construct for CD pipeline stages
   - Accept props (projectName, environment, buildSpecPath, artifactsBucket, environmentVariables, role)
   - Configure build environment (LinuxBuildImage.STANDARD_7_0, ComputeType.SMALL, Node.js 18)
@@ -77,7 +77,7 @@ This task list implements a CD pipeline for the Kiro CodeBuild Worker project. T
   - Export project ARN and name
   - **Validates**: TR-1, TR-8, NFR-2
 
-- [ ] 4.2 Write unit tests for Pipeline CodeBuild Construct
+- [x] 4.2 Write unit tests for Pipeline CodeBuild Construct
   - Create `infrastructure/test/constructs/pipeline-codebuild-construct.test.ts`
   - Test build environment configuration (image, compute type, runtime)
   - Test caching configuration (all 3 modes enabled with correct paths)
@@ -89,7 +89,7 @@ This task list implements a CD pipeline for the Kiro CodeBuild Worker project. T
   - **Validates**: NFR-4
 
 ### 5. Pipeline Stack
-- [ ] 5.1 Create `infrastructure/lib/stacks/cd-pipeline-stack.ts`
+- [x] 5.1 Create `infrastructure/lib/stacks/cd-pipeline-stack.ts`
   - Import core stack outputs (artifacts bucket, deployments table, KMS key)
   - Create CodePipeline with 5 stages: Source, Build, TestEnv, StagingEnv, ProductionEnv
   - Configure GitHub source action with webhook trigger and OAuth token from Secrets Manager (kiro-pipeline-{env}-github-token)
@@ -101,7 +101,7 @@ This task list implements a CD pipeline for the Kiro CodeBuild Worker project. T
   - Export pipeline ARN and name
   - **Validates**: TR-1, US-1, US-6, NFR-2
 
-- [ ] 5.2 Add CodeBuild projects to Pipeline Stack using PipelineCodeBuildConstruct
+- [x] 5.2 Add CodeBuild projects to Pipeline Stack using PipelineCodeBuildConstruct
   - Create build stage CodeBuild project with buildspec-build.yml
   - Create integration test CodeBuild project with buildspec-integration-test.yml
   - Create E2E test CodeBuild project with buildspec-e2e-test.yml

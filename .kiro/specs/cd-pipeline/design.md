@@ -2,7 +2,27 @@
 
 ## 1. Feature Overview
 
-This design implements a continuous deployment (CD) pipeline using AWS CodePipeline that automatically deploys infrastructure and application changes from the main branch to multiple environments (test, staging, production). The pipeline includes comprehensive testing, security scanning, monitoring integration, and automated rollback capabilities to ensure reliable deployments.
+This design implements a continuous deployment (CD) pipeline using AWS CodePipeline that automatically deploys application changes from the main branch to multiple environments (test, staging, production). The pipeline includes comprehensive testing, security scanning, monitoring integration, and automated rollback capabilities to ensure reliable deployments.
+
+### 1.1 Two-Stage Deployment Architecture
+
+**CRITICAL**: This feature implements a **two-stage deployment model** that separates pipeline infrastructure from application deployments:
+
+**Stage 1: Pipeline Infrastructure Deployment** (Manual, from Developer Laptop)
+- Deployed using AWS CDK from the `infrastructure/` directory
+- Creates the CI/CD pipeline infrastructure itself (CodePipeline, CodeBuild, monitoring, rollback systems)
+- Deployed manually by DevOps engineers using `cdk deploy` commands
+- One-time setup per environment (or when pipeline infrastructure changes)
+- Infrequent updates (typically when pipeline features change)
+
+**Stage 2: Application Deployment** (Automatic, via Pipeline)
+- Deployed automatically by the CodePipeline created in Stage 1
+- Triggered by commits to main branch via GitHub webhook
+- Deploys the Kiro CodeBuild Worker application code
+- Runs continuously for every code change
+- Frequent updates (multiple times per day)
+
+**Key Principle**: The pipeline infrastructure and application code are deployed separately. The pipeline does NOT deploy itself or update its own infrastructure. Pipeline infrastructure changes require manual deployment from a developer's laptop using CDK.
 
 ## 2. Architecture
 
@@ -62,23 +82,29 @@ This design implements a continuous deployment (CD) pipeline using AWS CodePipel
 
 ### 2.3 Design Decisions
 
-**Decision 1: Use AWS CodePipeline over GitHub Actions**
+**Decision 1: Two-Stage Deployment Model**
+- **Rationale**: Separating pipeline infrastructure deployment (manual, from laptop) from application deployment (automatic, via pipeline) provides stability, control, and safety. Pipeline infrastructure changes infrequently while application code changes frequently. This prevents the pipeline from accidentally breaking itself during application deployments.
+- **Trade-off**: Requires manual intervention for pipeline infrastructure updates, but provides clear separation of concerns and responsibilities
+- **Implementation**: Pipeline infrastructure deployed via CDK from developer laptop; application code deployed via CodeBuild within the pipeline
+
+**Decision 2: Use AWS CodePipeline over GitHub Actions**
 - **Rationale**: Native AWS integration, better control over deployment gates, built-in artifact management, and seamless integration with existing AWS infrastructure
 - **Trade-off**: Less flexibility than GitHub Actions, but better suited for AWS-centric deployments
 
-**Decision 2: Sequential Environment Deployment**
+**Decision 3: Sequential Environment Deployment**
 - **Rationale**: Progressive validation reduces production risk, allows early detection of issues
 - **Trade-off**: Longer total deployment time, but significantly safer
 
-**Decision 3: Infrastructure-First Deployment**
-- **Rationale**: Ensures infrastructure is ready before application deployment, prevents application failures due to missing resources
-- **Trade-off**: Slightly longer deployment time per environment
+**Decision 4: Application-Only Deployment by Default**
+- **Rationale**: Most commits only change application code, not infrastructure. Detecting infrastructure changes and skipping unnecessary CDK deployments speeds up the pipeline significantly.
+- **Trade-off**: Adds complexity with change detection logic, but dramatically improves deployment speed for application-only changes
+- **Implementation**: Infrastructure change detection checks for changes in `infrastructure/` directory and runs CDK diff to determine if deployment is needed
 
-**Decision 4: EventBridge-Triggered Rollback**
+**Decision 5: EventBridge-Triggered Rollback**
 - **Rationale**: Real-time alarm monitoring, decoupled architecture, extensible for future monitoring sources
 - **Trade-off**: Additional complexity, but provides automated recovery
 
-**Decision 5: DynamoDB for Deployment State**
+**Decision 6: DynamoDB for Deployment State**
 - **Rationale**: Fast reads/writes, serverless, supports TTL for automatic cleanup
 - **Trade-off**: Eventually consistent, but acceptable for deployment tracking
 
@@ -128,13 +154,13 @@ phases:
   build:
     commands:
       - npm run build
-      - cd infrastructure && npm ci && npm run build
+      - cd infrastructure && npm ci && npm run build && cdk synth --all
   post_build:
     commands:
-      - echo "Running security scans"
+      - echo "Running security scans on synthesized templates"
       - npm install -g cfn-lint cfn-guard
       - cfn-lint infrastructure/cdk.out/**/*.template.json
-      - cfn-guard validate --rules security-rules.guard --data infrastructure/cdk.out/**/*.template.json
+      - cfn-guard validate --rules infrastructure/security-rules.guard --data infrastructure/cdk.out/**/*.template.json
 artifacts:
   files:
     - '**/*'
@@ -151,46 +177,35 @@ reports:
 ```
 
 **Security Scanning**:
-- **cfn-lint**: Validates CloudFormation templates for errors and best practices
-- **cfn-guard**: Enforces security policies on infrastructure code
-- **npm audit**: Scans dependencies for known vulnerabilities
+- **cfn-lint**: Validates CloudFormation templates (synthesized from CDK) for errors and best practices
+- **cfn-guard**: Enforces security policies on infrastructure templates (synthesized from CDK)
+- **npm audit**: Scans application dependencies for known vulnerabilities
 - **ESLint**: Checks TypeScript code quality
+
+**Important Note**: Security scanning validates the pipeline infrastructure templates (synthesized via `cdk synth`) but does NOT deploy them. Pipeline infrastructure deployment is done manually from developer laptop using `cdk deploy`.
 
 **Success Criteria**:
 - All tests pass
 - Code coverage ≥80%
-- No CRITICAL or HIGH severity vulnerabilities
-- No cfn-lint errors
-- No cfn-guard policy violations
+- No CRITICAL or HIGH severity vulnerabilities in application dependencies
+- No cfn-lint errors in synthesized templates
+- No cfn-guard policy violations in synthesized templates
 
 #### 3.1.3 Test Environment Stage
 
-**Purpose**: Deploy to test environment and run integration tests
+**Purpose**: Deploy application to test environment and run integration tests
+
+**Important**: This stage deploys APPLICATION CODE ONLY. Pipeline infrastructure is already deployed manually via CDK from developer laptop.
 
 **Sub-Actions**:
-1. **Infrastructure Change Detection**
-
-   ```typescript
-   // Check if infrastructure/ directory changed
-   const infraChanged = await detectInfrastructureChanges(commitId);
-   if (infraChanged) {
-     await deployInfrastructure('test');
-   }
-   ```
-
-2. **Infrastructure Deployment** (if changes detected)
+1. **Application Deployment**
    ```bash
-   cd infrastructure
-   cdk deploy --all --context environment=test --require-approval never
-   ```
-
-3. **Application Deployment**
-   ```bash
-   # Deploy application code to CodeBuild worker
+   # Deploy application code to test environment
+   # Application is available via the existing CodeBuild worker infrastructure
    aws s3 sync dist/ s3://kiro-worker-test-artifacts/
    ```
 
-4. **Integration Tests**
+2. **Integration Tests**
    ```yaml
    # buildspec-integration-test.yml
    version: 0.2
@@ -206,19 +221,26 @@ reports:
    ```
 
 **Success Criteria**:
-- Infrastructure deployment succeeds (if needed)
 - Application deployment succeeds
 - All integration tests pass
 - No new CloudWatch alarms triggered
 
+**Note**: Infrastructure changes to the pipeline itself (CodePipeline, CodeBuild projects, monitoring) are NOT deployed by the pipeline. Those changes require manual `cdk deploy` from developer laptop.
+
 #### 3.1.4 Staging Environment Stage
 
-**Purpose**: Deploy to staging environment and run E2E tests
+**Purpose**: Deploy application to staging environment and run E2E tests
+
+**Important**: This stage deploys APPLICATION CODE ONLY. Pipeline infrastructure is already deployed manually via CDK from developer laptop.
 
 **Sub-Actions**:
-1. Infrastructure Change Detection & Deployment (same as test)
-2. Application Deployment
-3. **End-to-End Tests**
+1. **Application Deployment**
+   ```bash
+   # Deploy application code to staging environment
+   aws s3 sync dist/ s3://kiro-worker-staging-artifacts/
+   ```
+
+2. **End-to-End Tests**
    ```yaml
    # buildspec-e2e-test.yml
    version: 0.2
@@ -233,7 +255,7 @@ reports:
        file-format: 'JUNITXML'
    ```
 
-4. **Health Check Monitoring** (5 minutes)
+3. **Health Check Monitoring** (5 minutes)
    ```typescript
    await monitorHealthChecks({
      environment: 'staging',
@@ -243,7 +265,6 @@ reports:
    ```
 
 **Success Criteria**:
-- Infrastructure deployment succeeds (if needed)
 - Application deployment succeeds
 - All E2E tests pass
 - Health checks pass for 5 minutes
@@ -251,7 +272,9 @@ reports:
 
 #### 3.1.5 Production Environment Stage
 
-**Purpose**: Deploy to production with manual approval
+**Purpose**: Deploy application to production with manual approval
+
+**Important**: This stage deploys APPLICATION CODE ONLY. Pipeline infrastructure is already deployed manually via CDK from developer laptop.
 
 **Sub-Actions**:
 1. **Manual Approval Gate**
@@ -265,62 +288,75 @@ reports:
    });
    ```
 
-2. Infrastructure Change Detection & Deployment
-3. Application Deployment
-4. **Post-Deployment Health Check** (5 minutes)
-5. **Update GitHub Commit Status**
+2. **Application Deployment**
+   ```bash
+   # Deploy application code to production environment
+   aws s3 sync dist/ s3://kiro-worker-production-artifacts/
+   ```
+
+3. **Post-Deployment Health Check** (5 minutes)
+   ```typescript
+   await monitorHealthChecks({
+     environment: 'production',
+     duration: Duration.minutes(5),
+     alarmNames: ['production-*']
+   });
+   ```
+
+4. **Update GitHub Commit Status**
+   ```typescript
+   await updateGitHubCommitStatus(commitSha, 'success', 'Deployed to production');
+   ```
 
 **Success Criteria**:
 - Manual approval received within 24 hours
-- Infrastructure deployment succeeds (if needed)
 - Application deployment succeeds
 - Health checks pass for 5 minutes
 - No alarms in ALARM state
+- GitHub commit status updated
 
-### 3.2 Infrastructure Change Detection
+### 3.2 Pipeline Infrastructure vs Application Deployment
 
-**Purpose**: Avoid unnecessary CDK deployments when only application code changes
+**Critical Distinction**: This design implements two separate deployment paths:
 
-**Implementation**:
-```typescript
-export class InfrastructureChangeDetector {
-  async detectChanges(commitId: string): Promise<boolean> {
-    // Get changed files in commit
-    const changedFiles = await this.getChangedFiles(commitId);
-    
-    // Check if any infrastructure files changed
-    const infraFiles = changedFiles.filter(file => 
-      file.startsWith('infrastructure/') ||
-      file === 'buildspec.yml'
-    );
-    
-    if (infraFiles.length === 0) {
-      return false;
-    }
-    
-    // Run CDK diff to check for actual changes
-    const diffOutput = await this.runCdkDiff();
-    
-    // Parse diff output to determine if changes are meaningful
-    return this.hasMeaningfulChanges(diffOutput);
-  }
-  
-  private hasMeaningfulChanges(diffOutput: string): boolean {
-    // Ignore metadata-only changes
-    const meaningfulPatterns = [
-      /Resources:/,
-      /Parameters:/,
-      /Outputs:/
-    ];
-    
-    return meaningfulPatterns.some(pattern => pattern.test(diffOutput));
-  }
-}
-```
+**Path 1: Pipeline Infrastructure Deployment** (Manual, from Laptop)
+- **What**: CodePipeline, CodeBuild projects, monitoring, rollback Lambda, DynamoDB tables, S3 buckets, SNS topics, CloudWatch alarms
+- **How**: AWS CDK (`cdk deploy` commands from `infrastructure/` directory)
+- **When**: Initial setup, or when pipeline features/infrastructure change
+- **Who**: DevOps engineers with AWS credentials
+- **Frequency**: Infrequent (weeks/months between changes)
 
-**Design Decision**: Use both file-based detection and CDK diff
-- **Rationale**: File-based detection is fast but may have false positives; CDK diff is accurate but slower
-- **Trade-off**: Two-step process adds complexity but prevents unnecessary deployments
+**Path 2: Application Deployment** (Automatic, via Pipeline)
+- **What**: Kiro CodeBuild Worker application code (TypeScript compiled to JavaScript)
+- **How**: CodePipeline automatically triggered by GitHub webhook on main branch push
+- **When**: Every commit to main branch
+- **Who**: Automated (no human intervention except production approval)
+- **Frequency**: Frequent (multiple times per day)
+
+**Why This Separation?**
+1. **Stability**: Pipeline infrastructure changes infrequently; application code changes frequently
+2. **Safety**: Pipeline cannot accidentally break itself during application deployments
+3. **Control**: DevOps engineers control pipeline infrastructure; developers control application code
+4. **Simplicity**: Clear separation of concerns and responsibilities
+5. **Auditability**: Different approval processes for infrastructure vs application changes
+
+**Example Scenarios**:
+
+*Scenario 1: Developer adds new feature to application*
+- Developer commits code to main branch
+- Pipeline automatically triggers (GitHub webhook)
+- Build stage: compile, test, security scan
+- Test stage: deploy application, run integration tests
+- Staging stage: deploy application, run E2E tests
+- Production stage: manual approval, deploy application
+- **No CDK deployment needed** - pipeline infrastructure unchanged
+
+*Scenario 2: DevOps engineer adds new CloudWatch alarm to pipeline*
+- DevOps engineer modifies `infrastructure/lib/stacks/monitoring-alerting-stack.ts`
+- DevOps engineer runs `cdk diff` to review changes
+- DevOps engineer runs `cdk deploy` from laptop to update monitoring stack
+- **Pipeline does not automatically deploy this change** - requires manual CDK deployment
+- After infrastructure update, application deployments continue as normal
 
 ### 3.3 Monitoring Integration
 
@@ -1102,40 +1138,7 @@ export async function handler(event: AlarmEvent): Promise<void> {
 }
 ```
 
-### 5.2 Infrastructure Change Detection API
-
-```typescript
-interface InfrastructureChangeDetector {
-  /**
-   * Detects if infrastructure changes are present in a commit
-   * @param commitId - Git commit SHA
-   * @returns true if infrastructure changes detected
-   */
-  detectChanges(commitId: string): Promise<boolean>;
-  
-  /**
-   * Gets list of changed files in a commit
-   * @param commitId - Git commit SHA
-   * @returns Array of changed file paths
-   */
-  getChangedFiles(commitId: string): Promise<string[]>;
-  
-  /**
-   * Runs CDK diff to check for infrastructure changes
-   * @returns CDK diff output
-   */
-  runCdkDiff(): Promise<string>;
-  
-  /**
-   * Determines if diff output contains meaningful changes
-   * @param diffOutput - CDK diff output
-   * @returns true if meaningful changes detected
-   */
-  hasMeaningfulChanges(diffOutput: string): boolean;
-}
-```
-
-### 5.3 Health Check Monitor API
+### 5.2 Health Check Monitor API
 
 ```typescript
 interface HealthCheckMonitor {
@@ -1157,6 +1160,45 @@ interface HealthCheckMonitor {
    * @returns Health check result
    */
   runHealthChecks(): Promise<HealthCheckResult>;
+}
+```
+
+### 5.3 Deployment State Manager API
+
+```typescript
+interface DeploymentStateManager {
+  /**
+   * Records the start of a deployment
+   * @param deployment - Deployment information
+   */
+  recordDeploymentStart(deployment: DeploymentInfo): Promise<void>;
+  
+  /**
+   * Updates deployment status and test results
+   * @param deploymentId - Unique deployment identifier
+   * @param status - New deployment status
+   * @param testResults - Optional test results
+   */
+  updateDeploymentStatus(
+    deploymentId: string,
+    status: DeploymentStatus,
+    testResults?: TestResults
+  ): Promise<void>;
+  
+  /**
+   * Retrieves the last successful deployment for an environment
+   * @param environment - Target environment
+   * @returns Last known good deployment or null
+   */
+  getLastKnownGoodDeployment(environment: string): Promise<DeploymentRecord | null>;
+  
+  /**
+   * Retrieves deployment history for an environment
+   * @param environment - Target environment
+   * @param limit - Maximum number of records to return
+   * @returns Array of deployment records
+   */
+  getDeploymentHistory(environment: string, limit?: number): Promise<DeploymentRecord[]>;
 }
 ```
 
@@ -1277,12 +1319,13 @@ const result = await retry(
 ### 7.1 Unit Tests
 
 **Components to Test**:
-- InfrastructureChangeDetector
 - HealthCheckMonitor
 - RollbackOrchestrator
+- RollbackValidator
 - DeploymentStateManager
 - AlarmEventProcessor
 - NotificationService
+- PipelineMetrics
 
 **Example Test**:
 ```typescript
@@ -1325,19 +1368,19 @@ describe('RollbackOrchestrator', () => {
 ### 7.2 Integration Tests
 
 **Test Scenarios**:
-1. Full pipeline execution (source → production)
-2. Pipeline with infrastructure changes
-3. Pipeline with application-only changes
-4. Test failure triggers rollback
-5. Alarm triggers rollback
-6. Manual approval timeout
-7. Concurrent deployment prevention
+1. Full pipeline execution (source → production) with application-only changes
+2. Pipeline execution with manual approval timeout
+3. Test failure triggers rollback
+4. Alarm triggers rollback during deployment
+5. Concurrent deployment prevention (via DynamoDB locking)
+6. Health check failure blocks progression
+7. Security scan failure blocks deployment
 
 **Example Integration Test**:
 ```typescript
 describe('Pipeline Integration', () => {
-  it('should deploy through all environments successfully', async () => {
-    // Trigger pipeline
+  it('should deploy application through all environments successfully', async () => {
+    // Trigger pipeline with application code change
     await triggerPipeline('main', 'abc123def');
     
     // Wait for source stage
@@ -1371,6 +1414,24 @@ describe('Pipeline Integration', () => {
     // Verify deployment record
     const deployment = await getDeploymentRecord('production');
     expect(deployment.status).toBe('succeeded');
+  });
+  
+  it('should not deploy pipeline infrastructure automatically', async () => {
+    // Commit changes to infrastructure/ directory
+    await commitInfrastructureChanges();
+    await triggerPipeline('main', 'def456abc');
+    
+    // Pipeline should complete build stage (compile, test, security scan)
+    await waitForStageCompletion('Build');
+    
+    // But should NOT deploy infrastructure changes
+    const infraVersion = await getInfrastructureVersion('test');
+    expect(infraVersion).toBe(previousInfraVersion);
+    
+    // Application should still deploy successfully
+    await waitForStageCompletion('TestEnvironment');
+    const appVersion = await getApplicationVersion('test');
+    expect(appVersion).toBe('def456abc');
   });
 });
 ```
@@ -1454,52 +1515,100 @@ it('should never report success after reporting failure within same check', () =
 
 ## 8. Deployment Plan
 
-### 8.1 Infrastructure Deployment
+### 8.1 Stage 1: Pipeline Infrastructure Deployment (Manual, from Laptop)
 
-**Phase 1: Core Infrastructure**
+**Prerequisites**:
+- AWS CLI configured with appropriate credentials
+- AWS CDK CLI installed (`npm install -g aws-cdk`)
+- Node.js 18+ installed
+- Access to AWS account with deployment permissions
+
+**Deployment Order** (MUST be followed):
+
+**Phase 1: Core Infrastructure Stack**
 ```bash
 cd infrastructure
+npm install
+cdk bootstrap  # First time only
+
+# Deploy core infrastructure
 cdk deploy KiroPipelineCore --context environment=test
 ```
 
 Resources created:
-- S3 artifacts bucket
-- DynamoDB deployments table
-- CloudWatch log groups
-- KMS encryption keys
+- S3 artifacts bucket with encryption and lifecycle policies
+- DynamoDB deployments table with TTL and GSI
+- CloudWatch log groups for pipeline and rollback
+- KMS encryption keys with rotation enabled
 
 **Phase 2: Pipeline Stack**
 ```bash
+# Deploy pipeline infrastructure
 cdk deploy KiroPipeline --context environment=test
 ```
 
 Resources created:
-- CodePipeline
-- CodeBuild projects (build, test, deploy)
-- IAM roles and policies
-- EventBridge rules
+- AWS CodePipeline with 5 stages (Source, Build, TestEnv, StagingEnv, ProductionEnv)
+- CodeBuild projects for build, integration tests, E2E tests, and deployment
+- IAM roles and policies with least privilege
+- GitHub webhook integration
 
-**Phase 3: Monitoring Stack**
+**Phase 3: Monitoring and Alerting Stack**
 ```bash
+# Deploy monitoring infrastructure
 cdk deploy KiroPipelineMonitoring --context environment=test
 ```
 
 Resources created:
-- CloudWatch alarms
-- SNS topics and subscriptions
-- Rollback Lambda function
-- CloudWatch dashboard
+- CloudWatch alarms for pipeline failures, rollbacks, and duration
+- SNS topics for deployment, approval, and rollback notifications
+- Rollback Lambda function with EventBridge trigger
+- CloudWatch dashboard for pipeline metrics
 
-### 8.2 Configuration
-
-**Secrets to Create**:
+**Phase 4: Deploy to Additional Environments**
 ```bash
-# GitHub token
+# Deploy to staging
+cdk deploy --all --context environment=staging
+
+# Deploy to production (after staging validation)
+cdk deploy --all --context environment=production
+```
+
+### 8.2 Stage 2: Application Deployment (Automatic, via Pipeline)
+
+**Trigger**: Commit to main branch automatically triggers pipeline via GitHub webhook
+
+**Pipeline Execution Flow**:
+1. **Source Stage**: Pull code from GitHub main branch
+2. **Build Stage**: Compile, test, security scan (10 minutes)
+3. **Test Environment Stage**: Deploy application, run integration tests (15 minutes)
+4. **Staging Environment Stage**: Deploy application, run E2E tests, health checks (20 minutes)
+5. **Production Environment Stage**: Manual approval, deploy application, health checks (15 minutes)
+
+**Total Duration**: ~60 minutes from commit to production (including approval wait time)
+
+**No Manual Intervention Required** (except production approval)
+
+### 8.3 Configuration
+
+**Secrets to Create** (after infrastructure deployment):
+```bash
+# GitHub token for pipeline source action
 aws secretsmanager create-secret \
   --name kiro-pipeline-test-github-token \
+  --description "GitHub OAuth token for Kiro Pipeline" \
   --secret-string "ghp_xxxxxxxxxxxx"
 
-# Slack webhook (optional)
+# Repeat for staging and production
+aws secretsmanager create-secret \
+  --name kiro-pipeline-staging-github-token \
+  --secret-string "ghp_xxxxxxxxxxxx"
+
+aws secretsmanager create-secret \
+  --name kiro-pipeline-production-github-token \
+  --secret-string "ghp_xxxxxxxxxxxx"
+
+# Optional: Slack webhook for notifications
 aws secretsmanager create-secret \
   --name kiro-pipeline-test-slack-webhook \
   --secret-string "https://hooks.slack.com/services/xxx"
@@ -1517,11 +1626,17 @@ aws ssm put-parameter \
   --name /kiro-pipeline/test/github-repo \
   --value "kiro-codebuild-worker" \
   --type String
+
+# Email for SNS notifications
+aws ssm put-parameter \
+  --name /kiro-pipeline/test/notification-email \
+  --value "devops-team@example.com" \
+  --type String
 ```
 
-### 8.3 Validation
+### 8.4 Validation
 
-**Post-Deployment Checks**:
+**Post-Infrastructure-Deployment Checks**:
 ```bash
 # Verify pipeline exists
 aws codepipeline get-pipeline --name kiro-pipeline-test
@@ -1537,7 +1652,40 @@ aws dynamodb describe-table --table-name kiro-pipeline-test-deployments
 
 # Verify Lambda function
 aws lambda get-function --function-name kiro-pipeline-test-rollback
+
+# Verify SNS topics
+aws sns list-topics | grep kiro-pipeline-test
 ```
+
+**Trigger First Application Deployment**:
+```bash
+# Commit to main branch to trigger pipeline
+git checkout main
+git commit --allow-empty -m "chore: trigger initial pipeline execution"
+git push origin main
+
+# Monitor pipeline execution
+aws codepipeline get-pipeline-state --name kiro-pipeline-test
+```
+
+### 8.5 Updating Pipeline Infrastructure
+
+**When pipeline infrastructure needs updates** (e.g., adding new alarms, modifying CodeBuild configuration):
+
+```bash
+cd infrastructure
+
+# Review changes
+cdk diff --context environment=test
+
+# Deploy changes
+cdk deploy --all --context environment=test
+
+# Verify changes
+aws codepipeline get-pipeline --name kiro-pipeline-test
+```
+
+**Important**: Application deployments will continue to work during and after pipeline infrastructure updates. The pipeline does not need to be stopped or paused.
 
 ## 9. Monitoring and Observability
 
@@ -2277,15 +2425,27 @@ These metrics align with industry best practices for high-performing DevOps team
 
 Key strengths of this design:
 
-1. **Progressive Validation**: Sequential environment deployment (test → staging → production) provides multiple validation gates
-2. **Automated Recovery**: Multi-level rollback system (stage-level and full) ensures rapid recovery from failures
-3. **Comprehensive Testing**: Unit, integration, and E2E tests with 80% coverage requirement ensure code quality
-4. **Security First**: Multiple security scanning tools (cfn-guard, cfn-lint, npm audit) prevent vulnerable code from reaching production
-5. **Full Observability**: CloudWatch integration, custom metrics, and structured logging provide complete visibility
-6. **Infrastructure Optimization**: Smart infrastructure change detection prevents unnecessary CDK deployments
-7. **Formal Correctness**: Property-based tests validate critical system properties
+## 15. Summary
 
-The design addresses all requirements from the requirements document and provides a solid foundation for reliable, automated deployments. Future enhancements like blue/green deployments and canary releases can be added incrementally without major architectural changes.ration with monitoring systems provides real-time visibility into deployment health, while the property-based testing approach ensures correctness of critical pipeline logic.
+This design document provides a comprehensive blueprint for implementing a CD pipeline with automated deployment and rollback capabilities for the Kiro CodeBuild Worker project. The design emphasizes:
 
-The modular architecture allows for future enhancements such as blue/green deployments and canary releases without requiring a complete redesign. The use of AWS-native services (CodePipeline, CodeBuild, EventBridge) ensures reliability and maintainability while keeping operational overhead low.
+1. **Two-Stage Deployment Model**: Clear separation between pipeline infrastructure deployment (manual, from laptop via CDK) and application deployment (automatic, via pipeline). This ensures stability, control, and prevents the pipeline from breaking itself.
+
+2. **Progressive Validation**: Sequential environment deployment (test → staging → production) provides multiple validation gates before production release.
+
+3. **Automated Recovery**: Multi-level rollback system (stage-level and full) ensures rapid recovery from failures without manual intervention.
+
+4. **Comprehensive Testing**: Unit, integration, and E2E tests with 80% coverage requirement ensure code quality at every stage.
+
+5. **Security First**: Multiple security scanning tools (cfn-guard, cfn-lint, npm audit) prevent vulnerable code from reaching production. Security scans validate synthesized infrastructure templates but do not deploy them.
+
+6. **Full Observability**: CloudWatch integration, custom metrics, and structured logging provide complete visibility into both pipeline infrastructure and application deployments.
+
+7. **Application-Focused Pipeline**: The pipeline deploys application code only. Pipeline infrastructure changes require manual CDK deployment from developer laptop, ensuring stability and control.
+
+8. **Formal Correctness**: Property-based tests validate critical system properties including deployment ordering, rollback idempotency, and security scan enforcement.
+
+The design addresses all requirements from the requirements document and provides a solid foundation for reliable, automated application deployments. The two-stage deployment model ensures that pipeline infrastructure remains stable while application code can be deployed frequently and automatically.
+
+Future enhancements like blue/green deployments and canary releases can be added incrementally without major architectural changes. The use of AWS-native services (CodePipeline, CodeBuild, EventBridge) ensures reliability and maintainability while keeping operational overhead low.
 
