@@ -128,7 +128,7 @@ This task list implements a CD pipeline for the Kiro CodeBuild Worker project. T
   - **Validates**: NFR-4
 
 ### 6. Buildspec Files for CD Pipeline
-- [ ] 6.1 Create `buildspec-build.yml` in project root
+- [x] 6.1 Create `buildspec-build.yml` in project root
   - Configure install phase (Node.js 18, npm ci for dependencies)
   - Configure pre_build phase (npm run lint, npm audit --audit-level=high, npm run test:coverage)
   - Configure build phase (npm run build, cd infrastructure && npm ci && npm run build, cdk synth --all)
@@ -139,21 +139,21 @@ This task list implements a CD pipeline for the Kiro CodeBuild Worker project. T
   - Configure cache paths (node_modules, infrastructure/node_modules, .npm)
   - **Validates**: TR-3, TR-4, US-2, US-3
 
-- [ ] 6.2 Create `buildspec-integration-test.yml` in project root
+- [x] 6.2 Create `buildspec-integration-test.yml` in project root
   - Configure install phase (Node.js 18, restore dependencies from cache)
   - Configure build phase (npm run test:integration with environment variables)
   - Configure test reports output (test-results/integration-junit.xml as JUNITXML)
   - Configure timeout handling and error reporting
   - **Validates**: TR-3, US-2
 
-- [ ] 6.3 Create `buildspec-e2e-test.yml` in project root
+- [x] 6.3 Create `buildspec-e2e-test.yml` in project root
   - Configure install phase (Node.js 18, restore dependencies)
   - Configure build phase (npm run test:e2e with staging environment variables)
   - Configure test reports output (test-results/e2e-junit.xml as JUNITXML)
   - Configure timeout handling (30 minutes)
   - **Validates**: TR-3, US-2
 
-- [ ] 6.4 Create `buildspec-deploy.yml` in project root
+- [x] 6.4 Create `buildspec-deploy.yml` in project root
   - Configure install phase (Node.js 18, AWS CDK CLI)
   - Configure pre_build phase (detect infrastructure changes using git diff on infrastructure/**, buildspec*.yml, cdk.json)
   - Configure build phase (cdk diff --all for change preview, conditional cdk deploy --all based on changes detected)
@@ -163,7 +163,7 @@ This task list implements a CD pipeline for the Kiro CodeBuild Worker project. T
   - **Validates**: TR-1, US-1, US-7
 
 ### 7. Security Scanning Configuration
-- [ ] 7.1 Create `infrastructure/security-rules.guard` in infrastructure directory
+- [x] 7.1 Create `infrastructure/security-rules.guard` in infrastructure directory
   - Define S3 bucket encryption rule (ServerSideEncryptionConfiguration with AES256 or aws:kms required)
   - Define S3 bucket public access rule (all 4 BlockPublicAccess settings must be true)
   - Define DynamoDB encryption rule (SSESpecification.SSEEnabled must be true)
@@ -172,7 +172,7 @@ This task list implements a CD pipeline for the Kiro CodeBuild Worker project. T
   - Add comments explaining each rule and security rationale
   - **Validates**: TR-4, US-3, NFR-2
 
-- [ ] 7.2 Write tests for security rules
+- [x] 7.2 Write tests for security rules
   - Create `infrastructure/test/security/security-rules.test.ts`
   - Test that security-rules.guard file exists and is valid
   - Test rules against sample CloudFormation templates (both passing and failing cases)
@@ -184,7 +184,7 @@ This task list implements a CD pipeline for the Kiro CodeBuild Worker project. T
 ## Phase 3: Deployment State Management and Infrastructure Change Detection
 
 ### 8. Deployment State Manager Component
-- [ ] 8.1 Create `infrastructure/lib/components/` directory and deployment state manager
+- [x] 8.1 Create `infrastructure/lib/components/` directory and deployment state manager
   - Create `infrastructure/lib/components/deployment-state-manager.ts`
   - Import AWS SDK v3 DynamoDB client (DynamoDBClient, PutItemCommand, UpdateItemCommand, QueryCommand)
   - Implement `recordDeploymentStart()` method that creates deployment record with all required fields (deploymentId, environment, version, status, timestamps, etc.)
@@ -195,7 +195,7 @@ This task list implements a CD pipeline for the Kiro CodeBuild Worker project. T
   - Calculate TTL as current timestamp + 90 days in seconds
   - **Validates**: Design Section 3.5, TR-6
 
-- [ ] 8.2 Write unit tests for Deployment State Manager
+- [x] 8.2 Write unit tests for Deployment State Manager
   - Create `infrastructure/test/components/deployment-state-manager.test.ts`
   - Test recordDeploymentStart creates record with correct structure and TTL
   - Test updateDeploymentStatus updates status and timestamps correctly
@@ -209,7 +209,7 @@ This task list implements a CD pipeline for the Kiro CodeBuild Worker project. T
   - **Validates**: NFR-4
 
 ### 9. Infrastructure Change Detector Component
-- [ ] 9.1 Create `infrastructure/lib/components/infrastructure-change-detector.ts`
+- [x] 9.1 Create `infrastructure/lib/components/infrastructure-change-detector.ts`
   - Import simple-git for Git operations
   - Implement `detectChanges()` method that checks both file changes and CDK diff
   - Implement `getChangedFiles()` method using git diff between commits
@@ -220,7 +220,7 @@ This task list implements a CD pipeline for the Kiro CodeBuild Worker project. T
   - Return boolean indicating if CDK deployment is needed
   - **Validates**: Design Section 3.2, US-7
 
-- [ ] 9.2 Write unit tests for Infrastructure Change Detector
+- [x] 9.2 Write unit tests for Infrastructure Change Detector
   - Create `infrastructure/test/components/infrastructure-change-detector.test.ts`
   - Test detectChanges returns true when infrastructure files changed
   - Test detectChanges returns false when only application files changed
