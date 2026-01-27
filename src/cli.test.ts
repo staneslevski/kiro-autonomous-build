@@ -5,13 +5,19 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { loadConfigFromEnvironment, main } from './cli';
 import type { WorkerResult } from './types';
+import { KiroWorker } from './index';
 
 // Mock the KiroWorker class
 vi.mock('./index', () => ({
-  KiroWorker: vi.fn().mockImplementation(() => ({
-    execute: vi.fn()
-  }))
+  KiroWorker: vi.fn()
 }));
+
+// Mock all component dependencies
+vi.mock('./components/git-branch-manager');
+vi.mock('./components/steering-synchronizer');
+vi.mock('./components/kiro-cli-executor');
+vi.mock('./components/test-runner');
+vi.mock('./components/pull-request-updater');
 
 // Mock logger
 vi.mock('./utils/logger', () => ({
@@ -44,9 +50,12 @@ describe('CLI Entry Point', () => {
     originalConsoleError = console.error;
 
     exitCode = undefined;
+    // Mock process.exit to capture the exit code but NOT throw an error
+    // This prevents the error from being caught by the catch block in main()
     process.exit = vi.fn((code?: number) => {
       exitCode = code;
-      throw new Error(`Process exited with code ${code}`);
+      // Don't throw - just return to simulate exit
+      return undefined as never;
     }) as never;
 
     consoleOutput = [];
@@ -114,11 +123,12 @@ describe('CLI Entry Point', () => {
       process.env.BRANCH_NAME = 'feature-test';
       process.env.SPEC_PATH = '.kiro/specs/feature-test';
       process.env.ENVIRONMENT = 'test';
+      
+      // Reset the mock before each test
+      vi.mocked(KiroWorker).mockClear();
     });
 
     it('should exit with code 0 on successful execution', async () => {
-      const { KiroWorker } = await import('./index');
-      
       const mockExecute = vi.fn().mockResolvedValue({
         success: true,
         buildId: 'build-123',
@@ -129,36 +139,28 @@ describe('CLI Entry Point', () => {
         errors: []
       } as WorkerResult);
 
-      (KiroWorker as unknown as ReturnType<typeof vi.fn>).mockImplementation(() => ({
+      // Mock the KiroWorker constructor
+      vi.mocked(KiroWorker).mockImplementation(() => ({
         execute: mockExecute
-      }));
+      } as any));
 
-      try {
-        await main();
-      } catch (error) {
-        // Expected - process.exit throws
-      }
+      await main();
 
-      expect(exitCode).toBe(0);
       expect(mockExecute).toHaveBeenCalled();
+      expect(exitCode).toBe(0);
     });
 
     it('should exit with code 1 on execution failure', async () => {
-      const { KiroWorker } = await import('./index');
-      
       const mockExecute = vi.fn().mockRejectedValue(
         new Error('Pipeline execution failed')
       );
 
-      (KiroWorker as unknown as ReturnType<typeof vi.fn>).mockImplementation(() => ({
+      // Mock the KiroWorker constructor
+      vi.mocked(KiroWorker).mockImplementation(() => ({
         execute: mockExecute
-      }));
+      } as any));
 
-      try {
-        await main();
-      } catch (error) {
-        // Expected
-      }
+      await main();
 
       expect(exitCode).toBe(1);
       expect(mockExecute).toHaveBeenCalled();
@@ -169,14 +171,11 @@ describe('CLI Entry Point', () => {
       delete process.env.SPEC_PATH;
       delete process.env.ENVIRONMENT;
 
-      try {
-        await main();
-      } catch (error) {
-        // Expected
-      }
+      await main();
 
       expect(exitCode).toBe(1);
-      expect(consoleErrors.some(err => err.includes('Failed to load configuration'))).toBe(true);
+      // Check for the actual error message format from CLI
+      expect(consoleErrors.some(err => err.includes('Missing required environment variables'))).toBe(true);
     });
   });
 });

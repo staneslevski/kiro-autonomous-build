@@ -7,7 +7,16 @@ import { CloudWatchLogger } from './cloudwatch-logger';
 import { CloudWatchLogsClient, PutLogEventsCommand, CreateLogStreamCommand, DescribeLogStreamsCommand } from '@aws-sdk/client-cloudwatch-logs';
 
 // Mock AWS SDK
-vi.mock('@aws-sdk/client-cloudwatch-logs');
+vi.mock('@aws-sdk/client-cloudwatch-logs', () => {
+  const actual = vi.importActual('@aws-sdk/client-cloudwatch-logs');
+  return {
+    ...actual,
+    CloudWatchLogsClient: vi.fn(),
+    PutLogEventsCommand: vi.fn(),
+    CreateLogStreamCommand: vi.fn(),
+    DescribeLogStreamsCommand: vi.fn()
+  };
+});
 
 // Mock sanitize utility
 vi.mock('./sanitize', () => ({
@@ -206,11 +215,8 @@ describe('CloudWatchLogger', () => {
     it('should auto-flush after interval', async () => {
       await cloudWatchLogger.info('Message');
 
-      // Advance timers by 5 seconds
-      vi.advanceTimersByTime(5000);
-
-      // Wait for async flush
-      await vi.runAllTimersAsync();
+      // Advance timers by 5 seconds to trigger auto-flush
+      await vi.advanceTimersByTimeAsync(5000);
 
       const calls = mockSend.mock.calls;
       const putLogCall = calls.find(call => call[0] instanceof PutLogEventsCommand);
@@ -279,11 +285,33 @@ describe('CloudWatchLogger', () => {
     });
 
     it('should handle log stream creation error', async () => {
+      // Mock DescribeLogStreamsCommand to fail
       mockSend.mockRejectedValueOnce(new Error('Access denied'));
 
       await cloudWatchLogger.info('Test message');
 
-      await expect(cloudWatchLogger.flush()).rejects.toThrow();
+      // Flush should not throw (errors are caught and logged)
+      await cloudWatchLogger.flush();
+
+      // Should have attempted to describe log streams
+      expect(mockSend).toHaveBeenCalledWith(expect.any(DescribeLogStreamsCommand));
+      
+      // Logs should be back in buffer for retry (flush failed)
+      // We can verify this by flushing again with a successful mock
+      mockSend.mockResolvedValueOnce({
+        logStreams: [{
+          logStreamName: 'test-stream',
+          uploadSequenceToken: 'token-123'
+        }]
+      }).mockResolvedValueOnce({
+        nextSequenceToken: 'token-124'
+      });
+
+      await cloudWatchLogger.flush();
+      
+      // Should have successfully sent logs on second attempt
+      const putLogCall = mockSend.mock.calls.find(call => call[0] instanceof PutLogEventsCommand);
+      expect(putLogCall).toBeDefined();
     });
   });
 
@@ -311,15 +339,15 @@ describe('CloudWatchLogger', () => {
     });
 
     it('should handle auto-flush error gracefully', async () => {
+      // Mock to fail on DescribeLogStreamsCommand
       mockSend.mockRejectedValue(new Error('Network error'));
 
       await cloudWatchLogger.info('Test message');
 
-      // Advance timers to trigger auto-flush
-      vi.advanceTimersByTime(5000);
-      await vi.runAllTimersAsync();
+      // Advance timers to trigger auto-flush (should not throw)
+      await vi.advanceTimersByTimeAsync(5000);
 
-      // Should not throw
+      // Should have attempted to send
       expect(mockSend).toHaveBeenCalled();
     });
   });
@@ -353,7 +381,17 @@ describe('CloudWatchLogger', () => {
   });
 
   describe('log formatting', () => {
+    let capturedPutLogInput: any;
+
     beforeEach(() => {
+      capturedPutLogInput = undefined;
+      
+      // Mock PutLogEventsCommand constructor to capture input
+      vi.mocked(PutLogEventsCommand).mockImplementation((input: any) => {
+        capturedPutLogInput = input;
+        return {} as any;
+      });
+
       cloudWatchLogger = new CloudWatchLogger({
         logGroupName: '/aws/codebuild/test',
         logStreamName: 'test-stream'
@@ -361,24 +399,25 @@ describe('CloudWatchLogger', () => {
     });
 
     it('should format logs with timestamp and level', async () => {
-      mockSend.mockResolvedValueOnce({
-        logStreams: [{
-          logStreamName: 'test-stream',
-          uploadSequenceToken: 'token-123'
-        }]
-      }).mockResolvedValueOnce({
-        nextSequenceToken: 'token-124'
+      mockSend.mockImplementation((command: any) => {
+        if (command instanceof DescribeLogStreamsCommand) {
+          return Promise.resolve({
+            logStreams: [{
+              logStreamName: 'test-stream',
+              uploadSequenceToken: 'token-123'
+            }]
+          });
+        }
+        return Promise.resolve({
+          nextSequenceToken: 'token-124'
+        });
       });
 
       await cloudWatchLogger.info('Test message', { key: 'value' });
       await cloudWatchLogger.flush();
 
-      const calls = mockSend.mock.calls;
-      const putLogCall = calls.find(call => call[0] instanceof PutLogEventsCommand);
-      expect(putLogCall).toBeDefined();
-
-      const command = putLogCall![0] as PutLogEventsCommand;
-      const logEvents = command.input.logEvents;
+      expect(capturedPutLogInput).toBeDefined();
+      const logEvents = capturedPutLogInput.logEvents;
       expect(logEvents).toBeDefined();
       expect(logEvents!.length).toBe(1);
 
@@ -390,13 +429,18 @@ describe('CloudWatchLogger', () => {
     });
 
     it('should sort log events by timestamp', async () => {
-      mockSend.mockResolvedValueOnce({
-        logStreams: [{
-          logStreamName: 'test-stream',
-          uploadSequenceToken: 'token-123'
-        }]
-      }).mockResolvedValueOnce({
-        nextSequenceToken: 'token-124'
+      mockSend.mockImplementation((command: any) => {
+        if (command instanceof DescribeLogStreamsCommand) {
+          return Promise.resolve({
+            logStreams: [{
+              logStreamName: 'test-stream',
+              uploadSequenceToken: 'token-123'
+            }]
+          });
+        }
+        return Promise.resolve({
+          nextSequenceToken: 'token-124'
+        });
       });
 
       await cloudWatchLogger.info('Message 1');
@@ -404,10 +448,8 @@ describe('CloudWatchLogger', () => {
       await cloudWatchLogger.info('Message 3');
       await cloudWatchLogger.flush();
 
-      const calls = mockSend.mock.calls;
-      const putLogCall = calls.find(call => call[0] instanceof PutLogEventsCommand);
-      const command = putLogCall![0] as PutLogEventsCommand;
-      const logEvents = command.input.logEvents!;
+      expect(capturedPutLogInput).toBeDefined();
+      const logEvents = capturedPutLogInput.logEvents!;
 
       // Verify timestamps are in order
       for (let i = 1; i < logEvents.length; i++) {
