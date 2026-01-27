@@ -1,57 +1,66 @@
 # CD Pipeline with Automated Deployment and Rollback - Implementation Tasks
 
-## Phase 1: Core Infrastructure Setup
+## Overview
 
-### 1. Core Infrastructure Stack
-- [ ] 1.1 Create `infrastructure/lib/stacks/cd-pipeline-core-stack.ts`
-  - Create S3 artifacts bucket with encryption and lifecycle policies
-  - Create DynamoDB deployments table with TTL and GSI for environment/status queries
-  - Create KMS encryption key with rotation enabled
-  - Create CloudWatch log groups for pipeline and rollback
-  - Export stack outputs (bucket ARN, table name, KMS key ARN) for cross-stack references
-  - **Validates**: TR-1, TR-5, NFR-2
+This task list implements a CD pipeline for the Kiro CodeBuild Worker project. The pipeline will automatically deploy infrastructure and application changes through test → staging → production environments with comprehensive testing, security scanning, monitoring, and automated rollback capabilities.
 
-- [ ] 1.2 Write unit tests for Core Infrastructure Stack
-  - Test S3 bucket has encryption enabled (AES256 or KMS)
-  - Test S3 bucket has public access blocked (all 4 settings)
-  - Test S3 bucket has lifecycle rules (90 day expiration, 30 day IA transition)
-  - Test DynamoDB table has TTL configured on 'expiresAt' attribute
-  - Test DynamoDB table has GSI 'EnvironmentStatusIndex' with correct keys
-  - Test DynamoDB table has point-in-time recovery enabled
-  - Test KMS key has rotation enabled
-  - Verify snapshot matches expected resources
+**Important Notes:**
+- This is a NEW feature being added to the existing Kiro CodeBuild Worker project
+- Existing infrastructure stacks (core, secrets, monitoring, codebuild) already exist and should be extended where appropriate
+- The existing buildspec.yml is for the Kiro Worker application itself, not the CD pipeline
+- All tasks must achieve ≥80% code coverage and all tests must pass
+- Follow TypeScript and AWS CDK standards from steering documentation
+
+## Phase 1: Core Infrastructure and Type Definitions
+
+### 1. Type Definitions
+- [ ] 1.1 Create `infrastructure/lib/types/` directory and type definition files
+  - Create `infrastructure/lib/types/pipeline-types.ts` with DeploymentRecord, Environment, DeploymentStatus, RollbackLevel, HealthCheckResult, AlarmInfo, TestResults, SecurityViolation, FailedTest interfaces
+  - Create `infrastructure/lib/types/pipeline-config.ts` with PipelineConfig, PipelineEnvironmentConfig, BuildConfig, MonitoringConfig interfaces
+  - Create `infrastructure/lib/types/index.ts` to export all types
+  - **Validates**: Design Section 4, TR-2
+
+- [ ] 1.2 Write unit tests for type definitions
+  - Create `infrastructure/test/types/pipeline-types.test.ts`
+  - Test type guards and validation functions if any
+  - Test type compatibility and structure
   - Achieve ≥80% coverage
   - **Validates**: NFR-4
 
-### 2. Type Definitions
-- [ ] 2.1 Create `infrastructure/lib/types/pipeline-types.ts`
-  - Define `DeploymentRecord` interface with all fields from design (deploymentId, environment, version, status, timestamps, test results, rollback info, TTL)
-  - Define `Environment` type as union: 'test' | 'staging' | 'production'
-  - Define `DeploymentStatus` type as union: 'in_progress' | 'succeeded' | 'failed' | 'rolled_back'
-  - Define `RollbackLevel` type as union: 'stage' | 'full'
-  - Define `HealthCheckResult` interface with success, failedAlarms, timestamp
-  - Define `AlarmInfo` interface with name, state, reason
-  - Define `TestResults` interface with test flags, coverage, summary, failedTests
-  - Define `SecurityViolation` interface with severity, description, resource
-  - Define `FailedTest` interface with name, suite, error, stackTrace
-  - Export all types
-  - **Validates**: Design Section 4
-
-- [ ] 2.2 Create `infrastructure/lib/types/pipeline-config.ts`
-  - Define `PipelineConfig` interface with repository, branch, environments, monitoring settings
-  - Define `PipelineEnvironmentConfig` interface with account, region, alarms, health check duration
-  - Define `BuildConfig` interface with compute type, timeout, cache settings
-  - Define `MonitoringConfig` interface with alarm thresholds, notification topics
-  - Export all types
+### 2. Environment Configuration Extension
+- [ ] 2.1 Extend `infrastructure/lib/config/environments.ts` with CD pipeline configuration
+  - Add pipeline-specific fields to EnvironmentConfig interface (githubOwner, githubRepo, healthCheckDuration, alarmPrefixes, pipelineEnabled)
+  - Update test environment with pipeline settings (healthCheckDuration: 5 minutes, pipelineEnabled: true)
+  - Update staging environment with pipeline settings (healthCheckDuration: 5 minutes, pipelineEnabled: true)
+  - Update production environment with stricter settings (healthCheckDuration: 10 minutes, pipelineEnabled: true)
   - **Validates**: TR-2
 
-### 3. Environment Configuration
-- [ ] 3.1 Extend `infrastructure/lib/config/environments.ts` with pipeline-specific configuration
-  - Add pipeline-specific fields to existing EnvironmentConfig interface (health check duration, alarm prefixes, coverage threshold)
-  - Update test environment configuration with pipeline settings
-  - Update staging environment configuration with pipeline settings
-  - Update production environment configuration with stricter pipeline settings
-  - **Validates**: TR-2
+- [ ] 2.2 Update environment configuration tests
+  - Update `infrastructure/test/config/environments.test.ts` to test new pipeline fields
+  - Test that all environments have required pipeline configuration
+  - Test validation of pipeline-specific fields
+  - Achieve ≥80% coverage
+  - **Validates**: NFR-4
+
+### 3. CD Pipeline Core Infrastructure Stack
+- [ ] 3.1 Create `infrastructure/lib/stacks/cd-pipeline-core-stack.ts`
+  - Create S3 artifacts bucket for pipeline with encryption (KMS), versioning, lifecycle policies (90 day expiration, 30 day IA transition), and public access blocked
+  - Create DynamoDB deployments table with partition key (deploymentId), TTL attribute (expiresAt), GSI (EnvironmentStatusIndex with environment as PK and status as SK), point-in-time recovery, and encryption
+  - Create KMS encryption key with rotation enabled for pipeline resources
+  - Create CloudWatch log groups for pipeline (/aws/codepipeline/kiro-pipeline-{env}) and rollback (/aws/lambda/kiro-pipeline-{env}-rollback) with 90-day retention
+  - Export stack outputs (artifactsBucketArn, artifactsBucketName, deploymentsTableName, deploymentsTableArn, kmsKeyArn, pipelineLogGroupName, rollbackLogGroupName)
+  - **Validates**: TR-1, TR-5, NFR-2
+
+- [ ] 3.2 Write unit tests for CD Pipeline Core Infrastructure Stack
+  - Create `infrastructure/test/stacks/cd-pipeline-core-stack.test.ts`
+  - Test S3 bucket has KMS encryption, versioning, lifecycle rules, and public access blocked
+  - Test DynamoDB table has TTL, GSI, point-in-time recovery, and encryption
+  - Test KMS key has rotation enabled
+  - Test CloudWatch log groups have correct retention and encryption
+  - Test stack outputs are exported correctly
+  - Verify snapshot matches expected resources
+  - Achieve ≥80% coverage
+  - **Validates**: NFR-4
 
 ## Phase 2: Pipeline Infrastructure
 
