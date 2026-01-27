@@ -51,6 +51,23 @@ export interface EnvironmentConfig {
   
   /** SNS topic email for alerts */
   alertEmail?: string;
+  
+  // CD Pipeline Configuration
+  
+  /** GitHub repository owner/organization name */
+  githubOwner?: string;
+  
+  /** GitHub repository name */
+  githubRepo?: string;
+  
+  /** Duration in minutes to monitor health checks after deployment */
+  healthCheckDuration?: number;
+  
+  /** CloudWatch alarm name prefixes to monitor during deployment */
+  alarmPrefixes?: string[];
+  
+  /** Enable CD pipeline for this environment */
+  pipelineEnabled?: boolean;
 }
 
 /**
@@ -78,6 +95,12 @@ function getEnvironments(): Record<string, EnvironmentConfig> {
       artifactRetentionDays: 30,
       logRetentionDays: 7,
       enableDetailedMetrics: true,
+      // CD Pipeline Configuration
+      githubOwner: process.env.GITHUB_OWNER || 'kiro-org',
+      githubRepo: process.env.GITHUB_REPO || 'kiro-codebuild-worker',
+      healthCheckDuration: 5,
+      alarmPrefixes: ['kiro-worker-test'],
+      pipelineEnabled: true,
     },
     
     staging: {
@@ -93,6 +116,12 @@ function getEnvironments(): Record<string, EnvironmentConfig> {
       artifactRetentionDays: 60,
       logRetentionDays: 14,
       enableDetailedMetrics: true,
+      // CD Pipeline Configuration
+      githubOwner: process.env.GITHUB_OWNER || 'kiro-org',
+      githubRepo: process.env.GITHUB_REPO || 'kiro-codebuild-worker',
+      healthCheckDuration: 5,
+      alarmPrefixes: ['kiro-worker-staging'],
+      pipelineEnabled: true,
     },
     
     production: {
@@ -108,6 +137,12 @@ function getEnvironments(): Record<string, EnvironmentConfig> {
       artifactRetentionDays: 90,
       logRetentionDays: 30,
       enableDetailedMetrics: false,
+      // CD Pipeline Configuration
+      githubOwner: process.env.GITHUB_OWNER || 'kiro-org',
+      githubRepo: process.env.GITHUB_REPO || 'kiro-codebuild-worker',
+      healthCheckDuration: 10,
+      alarmPrefixes: ['kiro-worker-production'],
+      pipelineEnabled: true,
     },
   };
 }

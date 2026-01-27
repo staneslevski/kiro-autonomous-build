@@ -1,0 +1,399 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`CDPipelineCoreStack > Snapshot Test > should match snapshot 1`] = `
+{
+  "Outputs": {
+    "ArtifactsBucketArn": {
+      "Description": "ARN of the pipeline artifacts S3 bucket",
+      "Export": {
+        "Name": "kiro-pipeline-test-artifacts-bucket-arn",
+      },
+      "Value": {
+        "Fn::GetAtt": [
+          "ArtifactsBucket2AAC5544",
+          "Arn",
+        ],
+      },
+    },
+    "ArtifactsBucketName": {
+      "Description": "Name of the pipeline artifacts S3 bucket",
+      "Export": {
+        "Name": "kiro-pipeline-test-artifacts-bucket-name",
+      },
+      "Value": {
+        "Ref": "ArtifactsBucket2AAC5544",
+      },
+    },
+    "DeploymentsTableArn": {
+      "Description": "ARN of the deployments DynamoDB table",
+      "Export": {
+        "Name": "kiro-pipeline-test-deployments-table-arn",
+      },
+      "Value": {
+        "Fn::GetAtt": [
+          "DeploymentsTable5D087E52",
+          "Arn",
+        ],
+      },
+    },
+    "DeploymentsTableName": {
+      "Description": "Name of the deployments DynamoDB table",
+      "Export": {
+        "Name": "kiro-pipeline-test-deployments-table-name",
+      },
+      "Value": {
+        "Ref": "DeploymentsTable5D087E52",
+      },
+    },
+    "KmsKeyArn": {
+      "Description": "ARN of the pipeline KMS encryption key",
+      "Export": {
+        "Name": "kiro-pipeline-test-kms-key-arn",
+      },
+      "Value": {
+        "Fn::GetAtt": [
+          "PipelineKeyCB77AB88",
+          "Arn",
+        ],
+      },
+    },
+    "PipelineLogGroupName": {
+      "Description": "Name of the pipeline CloudWatch log group",
+      "Export": {
+        "Name": "kiro-pipeline-test-pipeline-log-group-name",
+      },
+      "Value": {
+        "Ref": "PipelineLogGroup1CF6DEF2",
+      },
+    },
+    "RollbackLogGroupName": {
+      "Description": "Name of the rollback Lambda CloudWatch log group",
+      "Export": {
+        "Name": "kiro-pipeline-test-rollback-log-group-name",
+      },
+      "Value": {
+        "Ref": "RollbackLogGroup819E4FF4",
+      },
+    },
+  },
+  "Parameters": {
+    "BootstrapVersion": {
+      "Default": "/cdk-bootstrap/hnb659fds/version",
+      "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+  },
+  "Resources": {
+    "ArtifactsBucket2AAC5544": {
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "BucketEncryption": {
+          "ServerSideEncryptionConfiguration": [
+            {
+              "ServerSideEncryptionByDefault": {
+                "KMSMasterKeyID": {
+                  "Fn::GetAtt": [
+                    "PipelineKeyCB77AB88",
+                    "Arn",
+                  ],
+                },
+                "SSEAlgorithm": "aws:kms",
+              },
+            },
+          ],
+        },
+        "BucketName": "kiro-pipeline-test-artifacts",
+        "LifecycleConfiguration": {
+          "Rules": [
+            {
+              "ExpirationInDays": 90,
+              "Id": "DeleteOldArtifacts",
+              "Status": "Enabled",
+            },
+            {
+              "Id": "TransitionToIA",
+              "Status": "Enabled",
+              "Transitions": [
+                {
+                  "StorageClass": "STANDARD_IA",
+                  "TransitionInDays": 30,
+                },
+              ],
+            },
+            {
+              "Id": "DeleteOldVersions",
+              "NoncurrentVersionExpiration": {
+                "NoncurrentDays": 30,
+              },
+              "Status": "Enabled",
+            },
+          ],
+        },
+        "PublicAccessBlockConfiguration": {
+          "BlockPublicAcls": true,
+          "BlockPublicPolicy": true,
+          "IgnorePublicAcls": true,
+          "RestrictPublicBuckets": true,
+        },
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "test",
+          },
+          {
+            "Key": "ManagedBy",
+            "Value": "CDK",
+          },
+          {
+            "Key": "Project",
+            "Value": "KiroPipeline",
+          },
+          {
+            "Key": "Stack",
+            "Value": "CDPipelineCore",
+          },
+        ],
+        "VersioningConfiguration": {
+          "Status": "Enabled",
+        },
+      },
+      "Type": "AWS::S3::Bucket",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "DeploymentsTable5D087E52": {
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "deploymentId",
+            "AttributeType": "S",
+          },
+          {
+            "AttributeName": "environment",
+            "AttributeType": "S",
+          },
+          {
+            "AttributeName": "status",
+            "AttributeType": "S",
+          },
+        ],
+        "BillingMode": "PAY_PER_REQUEST",
+        "GlobalSecondaryIndexes": [
+          {
+            "IndexName": "EnvironmentStatusIndex",
+            "KeySchema": [
+              {
+                "AttributeName": "environment",
+                "KeyType": "HASH",
+              },
+              {
+                "AttributeName": "status",
+                "KeyType": "RANGE",
+              },
+            ],
+            "Projection": {
+              "ProjectionType": "ALL",
+            },
+          },
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "deploymentId",
+            "KeyType": "HASH",
+          },
+        ],
+        "PointInTimeRecoverySpecification": {
+          "PointInTimeRecoveryEnabled": true,
+        },
+        "SSESpecification": {
+          "SSEEnabled": true,
+        },
+        "StreamSpecification": {
+          "StreamViewType": "NEW_AND_OLD_IMAGES",
+        },
+        "TableName": "kiro-pipeline-test-deployments",
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "test",
+          },
+          {
+            "Key": "ManagedBy",
+            "Value": "CDK",
+          },
+          {
+            "Key": "Project",
+            "Value": "KiroPipeline",
+          },
+          {
+            "Key": "Stack",
+            "Value": "CDPipelineCore",
+          },
+        ],
+        "TimeToLiveSpecification": {
+          "AttributeName": "expiresAt",
+          "Enabled": true,
+        },
+      },
+      "Type": "AWS::DynamoDB::Table",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "PipelineKeyAliasF1FDDC81": {
+      "Properties": {
+        "AliasName": "alias/kiro-pipeline-test",
+        "TargetKeyId": {
+          "Fn::GetAtt": [
+            "PipelineKeyCB77AB88",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::KMS::Alias",
+    },
+    "PipelineKeyCB77AB88": {
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "Description": "KMS key for Kiro CD Pipeline test resources",
+        "EnableKeyRotation": true,
+        "KeyPolicy": {
+          "Statement": [
+            {
+              "Action": "kms:*",
+              "Effect": "Allow",
+              "Principal": {
+                "AWS": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":iam::123456789012:root",
+                    ],
+                  ],
+                },
+              },
+              "Resource": "*",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "test",
+          },
+          {
+            "Key": "ManagedBy",
+            "Value": "CDK",
+          },
+          {
+            "Key": "Project",
+            "Value": "KiroPipeline",
+          },
+          {
+            "Key": "Stack",
+            "Value": "CDPipelineCore",
+          },
+        ],
+      },
+      "Type": "AWS::KMS::Key",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "PipelineLogGroup1CF6DEF2": {
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "KmsKeyId": {
+          "Fn::GetAtt": [
+            "PipelineKeyCB77AB88",
+            "Arn",
+          ],
+        },
+        "LogGroupName": "/aws/codepipeline/kiro-pipeline-test",
+        "RetentionInDays": 90,
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "test",
+          },
+          {
+            "Key": "ManagedBy",
+            "Value": "CDK",
+          },
+          {
+            "Key": "Project",
+            "Value": "KiroPipeline",
+          },
+          {
+            "Key": "Stack",
+            "Value": "CDPipelineCore",
+          },
+        ],
+      },
+      "Type": "AWS::Logs::LogGroup",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "RollbackLogGroup819E4FF4": {
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "KmsKeyId": {
+          "Fn::GetAtt": [
+            "PipelineKeyCB77AB88",
+            "Arn",
+          ],
+        },
+        "LogGroupName": "/aws/lambda/kiro-pipeline-test-rollback",
+        "RetentionInDays": 90,
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "test",
+          },
+          {
+            "Key": "ManagedBy",
+            "Value": "CDK",
+          },
+          {
+            "Key": "Project",
+            "Value": "KiroPipeline",
+          },
+          {
+            "Key": "Stack",
+            "Value": "CDPipelineCore",
+          },
+        ],
+      },
+      "Type": "AWS::Logs::LogGroup",
+      "UpdateReplacePolicy": "Retain",
+    },
+  },
+  "Rules": {
+    "CheckBootstrapVersion": {
+      "Assertions": [
+        {
+          "Assert": {
+            "Fn::Not": [
+              {
+                "Fn::Contains": [
+                  [
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5",
+                  ],
+                  {
+                    "Ref": "BootstrapVersion",
+                  },
+                ],
+              },
+            ],
+          },
+          "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI.",
+        },
+      ],
+    },
+  },
+}
+`;

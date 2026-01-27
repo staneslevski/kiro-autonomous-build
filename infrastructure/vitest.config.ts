@@ -13,7 +13,8 @@ export default defineConfig({
         '**/*.test.ts',
         '**/*.spec.ts',
         'bin/**',
-        'cdk.out/**'
+        'cdk.out/**',
+        'lib/types/**'
       ],
       thresholds: {
         lines: 80,

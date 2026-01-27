@@ -72,6 +72,75 @@ describe('Environment Configuration', () => {
     });
   });
 
+  describe('CD Pipeline Configuration', () => {
+    it('should have pipeline enabled for all environments', () => {
+      expect(ENVIRONMENTS.test.pipelineEnabled).toBe(true);
+      expect(ENVIRONMENTS.staging.pipelineEnabled).toBe(true);
+      expect(ENVIRONMENTS.production.pipelineEnabled).toBe(true);
+    });
+
+    it('should have GitHub owner configured for all environments', () => {
+      expect(ENVIRONMENTS.test.githubOwner).toBeDefined();
+      expect(ENVIRONMENTS.staging.githubOwner).toBeDefined();
+      expect(ENVIRONMENTS.production.githubOwner).toBeDefined();
+    });
+
+    it('should have GitHub repo configured for all environments', () => {
+      expect(ENVIRONMENTS.test.githubRepo).toBeDefined();
+      expect(ENVIRONMENTS.staging.githubRepo).toBeDefined();
+      expect(ENVIRONMENTS.production.githubRepo).toBeDefined();
+    });
+
+    it('should have health check duration of 5 minutes for test environment', () => {
+      expect(ENVIRONMENTS.test.healthCheckDuration).toBe(5);
+    });
+
+    it('should have health check duration of 5 minutes for staging environment', () => {
+      expect(ENVIRONMENTS.staging.healthCheckDuration).toBe(5);
+    });
+
+    it('should have health check duration of 10 minutes for production environment', () => {
+      expect(ENVIRONMENTS.production.healthCheckDuration).toBe(10);
+    });
+
+    it('should have stricter health check duration for production', () => {
+      expect(ENVIRONMENTS.production.healthCheckDuration).toBeGreaterThan(ENVIRONMENTS.test.healthCheckDuration!);
+      expect(ENVIRONMENTS.production.healthCheckDuration).toBeGreaterThan(ENVIRONMENTS.staging.healthCheckDuration!);
+    });
+
+    it('should have alarm prefixes configured for test environment', () => {
+      expect(ENVIRONMENTS.test.alarmPrefixes).toBeDefined();
+      expect(ENVIRONMENTS.test.alarmPrefixes).toContain('kiro-worker-test');
+    });
+
+    it('should have alarm prefixes configured for staging environment', () => {
+      expect(ENVIRONMENTS.staging.alarmPrefixes).toBeDefined();
+      expect(ENVIRONMENTS.staging.alarmPrefixes).toContain('kiro-worker-staging');
+    });
+
+    it('should have alarm prefixes configured for production environment', () => {
+      expect(ENVIRONMENTS.production.alarmPrefixes).toBeDefined();
+      expect(ENVIRONMENTS.production.alarmPrefixes).toContain('kiro-worker-production');
+    });
+
+    it('should have environment-specific alarm prefixes', () => {
+      expect(ENVIRONMENTS.test.alarmPrefixes).not.toEqual(ENVIRONMENTS.staging.alarmPrefixes);
+      expect(ENVIRONMENTS.staging.alarmPrefixes).not.toEqual(ENVIRONMENTS.production.alarmPrefixes);
+    });
+
+    it('should use environment variables for GitHub owner with fallback', () => {
+      // The actual value will be from env var or default
+      expect(typeof ENVIRONMENTS.test.githubOwner).toBe('string');
+      expect(ENVIRONMENTS.test.githubOwner).toBeTruthy();
+    });
+
+    it('should use environment variables for GitHub repo with fallback', () => {
+      // The actual value will be from env var or default
+      expect(typeof ENVIRONMENTS.test.githubRepo).toBe('string');
+      expect(ENVIRONMENTS.test.githubRepo).toBeTruthy();
+    });
+  });
+
   describe('getEnvironmentConfig', () => {
     let originalAccount: string | undefined;
 
@@ -440,6 +509,346 @@ describe('Environment Configuration', () => {
       };
       
       expect(config.codeBuildComputeType).toBe('LARGE');
+    });
+  });
+
+  describe('Pipeline Configuration Validation', () => {
+    let validConfig: EnvironmentConfig;
+
+    beforeEach(() => {
+      validConfig = {
+        account: '123456789012',
+        region: 'us-east-1',
+        environment: 'test',
+        coverageThreshold: 80,
+        pollingInterval: 'rate(5 minutes)',
+        githubOwner: 'test-org',
+        githubRepo: 'test-repo',
+        healthCheckDuration: 5,
+        alarmPrefixes: ['kiro-worker-test'],
+        pipelineEnabled: true,
+      };
+    });
+
+    it('should validate configuration with all pipeline fields', () => {
+      expect(() => validateEnvironmentConfig(validConfig)).not.toThrow();
+    });
+
+    it('should accept configuration without optional pipeline fields', () => {
+      const minimalConfig: EnvironmentConfig = {
+        account: '123456789012',
+        region: 'us-east-1',
+        environment: 'test',
+        coverageThreshold: 80,
+        pollingInterval: 'rate(5 minutes)',
+      };
+      
+      expect(() => validateEnvironmentConfig(minimalConfig)).not.toThrow();
+    });
+
+    it('should accept valid health check duration', () => {
+      validConfig.healthCheckDuration = 10;
+      expect(() => validateEnvironmentConfig(validConfig)).not.toThrow();
+    });
+
+    it('should accept health check duration of 1 minute', () => {
+      validConfig.healthCheckDuration = 1;
+      expect(() => validateEnvironmentConfig(validConfig)).not.toThrow();
+    });
+
+    it('should accept health check duration of 60 minutes', () => {
+      validConfig.healthCheckDuration = 60;
+      expect(() => validateEnvironmentConfig(validConfig)).not.toThrow();
+    });
+
+    it('should accept empty alarm prefixes array', () => {
+      validConfig.alarmPrefixes = [];
+      expect(() => validateEnvironmentConfig(validConfig)).not.toThrow();
+    });
+
+    it('should accept multiple alarm prefixes', () => {
+      validConfig.alarmPrefixes = ['kiro-worker-test', 'kiro-pipeline-test', 'custom-alarm'];
+      expect(() => validateEnvironmentConfig(validConfig)).not.toThrow();
+    });
+
+    it('should accept pipeline enabled as true', () => {
+      validConfig.pipelineEnabled = true;
+      expect(() => validateEnvironmentConfig(validConfig)).not.toThrow();
+    });
+
+    it('should accept pipeline enabled as false', () => {
+      validConfig.pipelineEnabled = false;
+      expect(() => validateEnvironmentConfig(validConfig)).not.toThrow();
+    });
+
+    it('should accept valid GitHub owner', () => {
+      validConfig.githubOwner = 'my-organization';
+      expect(() => validateEnvironmentConfig(validConfig)).not.toThrow();
+    });
+
+    it('should accept valid GitHub repo', () => {
+      validConfig.githubRepo = 'my-repository';
+      expect(() => validateEnvironmentConfig(validConfig)).not.toThrow();
+    });
+
+    it('should accept GitHub owner with hyphens', () => {
+      validConfig.githubOwner = 'my-org-name';
+      expect(() => validateEnvironmentConfig(validConfig)).not.toThrow();
+    });
+
+    it('should accept GitHub repo with hyphens and underscores', () => {
+      validConfig.githubRepo = 'my-repo_name';
+      expect(() => validateEnvironmentConfig(validConfig)).not.toThrow();
+    });
+  });
+
+  describe('Pipeline Configuration Completeness', () => {
+    it('should have all required pipeline fields in test environment', () => {
+      expect(ENVIRONMENTS.test.githubOwner).toBeDefined();
+      expect(ENVIRONMENTS.test.githubRepo).toBeDefined();
+      expect(ENVIRONMENTS.test.healthCheckDuration).toBeDefined();
+      expect(ENVIRONMENTS.test.alarmPrefixes).toBeDefined();
+      expect(ENVIRONMENTS.test.pipelineEnabled).toBeDefined();
+    });
+
+    it('should have all required pipeline fields in staging environment', () => {
+      expect(ENVIRONMENTS.staging.githubOwner).toBeDefined();
+      expect(ENVIRONMENTS.staging.githubRepo).toBeDefined();
+      expect(ENVIRONMENTS.staging.healthCheckDuration).toBeDefined();
+      expect(ENVIRONMENTS.staging.alarmPrefixes).toBeDefined();
+      expect(ENVIRONMENTS.staging.pipelineEnabled).toBeDefined();
+    });
+
+    it('should have all required pipeline fields in production environment', () => {
+      expect(ENVIRONMENTS.production.githubOwner).toBeDefined();
+      expect(ENVIRONMENTS.production.githubRepo).toBeDefined();
+      expect(ENVIRONMENTS.production.healthCheckDuration).toBeDefined();
+      expect(ENVIRONMENTS.production.alarmPrefixes).toBeDefined();
+      expect(ENVIRONMENTS.production.pipelineEnabled).toBeDefined();
+    });
+
+    it('should have non-empty GitHub owner in all environments', () => {
+      expect(ENVIRONMENTS.test.githubOwner).toBeTruthy();
+      expect(ENVIRONMENTS.staging.githubOwner).toBeTruthy();
+      expect(ENVIRONMENTS.production.githubOwner).toBeTruthy();
+    });
+
+    it('should have non-empty GitHub repo in all environments', () => {
+      expect(ENVIRONMENTS.test.githubRepo).toBeTruthy();
+      expect(ENVIRONMENTS.staging.githubRepo).toBeTruthy();
+      expect(ENVIRONMENTS.production.githubRepo).toBeTruthy();
+    });
+
+    it('should have positive health check duration in all environments', () => {
+      expect(ENVIRONMENTS.test.healthCheckDuration).toBeGreaterThan(0);
+      expect(ENVIRONMENTS.staging.healthCheckDuration).toBeGreaterThan(0);
+      expect(ENVIRONMENTS.production.healthCheckDuration).toBeGreaterThan(0);
+    });
+
+    it('should have alarm prefixes array in all environments', () => {
+      expect(Array.isArray(ENVIRONMENTS.test.alarmPrefixes)).toBe(true);
+      expect(Array.isArray(ENVIRONMENTS.staging.alarmPrefixes)).toBe(true);
+      expect(Array.isArray(ENVIRONMENTS.production.alarmPrefixes)).toBe(true);
+    });
+
+    it('should have at least one alarm prefix in all environments', () => {
+      expect(ENVIRONMENTS.test.alarmPrefixes!.length).toBeGreaterThan(0);
+      expect(ENVIRONMENTS.staging.alarmPrefixes!.length).toBeGreaterThan(0);
+      expect(ENVIRONMENTS.production.alarmPrefixes!.length).toBeGreaterThan(0);
+    });
+
+    it('should have boolean pipeline enabled flag in all environments', () => {
+      expect(typeof ENVIRONMENTS.test.pipelineEnabled).toBe('boolean');
+      expect(typeof ENVIRONMENTS.staging.pipelineEnabled).toBe('boolean');
+      expect(typeof ENVIRONMENTS.production.pipelineEnabled).toBe('boolean');
+    });
+  });
+
+  describe('Pipeline Configuration Edge Cases', () => {
+    it('should handle undefined pipeline fields gracefully', () => {
+      const config: EnvironmentConfig = {
+        account: '123456789012',
+        region: 'us-east-1',
+        environment: 'test',
+        coverageThreshold: 80,
+        pollingInterval: 'rate(5 minutes)',
+        githubOwner: undefined,
+        githubRepo: undefined,
+        healthCheckDuration: undefined,
+        alarmPrefixes: undefined,
+        pipelineEnabled: undefined,
+      };
+      
+      // Should not throw - optional fields
+      expect(() => validateEnvironmentConfig(config)).not.toThrow();
+    });
+
+    it('should handle empty string GitHub owner', () => {
+      const config: EnvironmentConfig = {
+        account: '123456789012',
+        region: 'us-east-1',
+        environment: 'test',
+        coverageThreshold: 80,
+        pollingInterval: 'rate(5 minutes)',
+        githubOwner: '',
+      };
+      
+      // Should not throw - optional field, validation happens at runtime
+      expect(() => validateEnvironmentConfig(config)).not.toThrow();
+    });
+
+    it('should handle empty string GitHub repo', () => {
+      const config: EnvironmentConfig = {
+        account: '123456789012',
+        region: 'us-east-1',
+        environment: 'test',
+        coverageThreshold: 80,
+        pollingInterval: 'rate(5 minutes)',
+        githubRepo: '',
+      };
+      
+      // Should not throw - optional field, validation happens at runtime
+      expect(() => validateEnvironmentConfig(config)).not.toThrow();
+    });
+
+    it('should handle zero health check duration', () => {
+      const config: EnvironmentConfig = {
+        account: '123456789012',
+        region: 'us-east-1',
+        environment: 'test',
+        coverageThreshold: 80,
+        pollingInterval: 'rate(5 minutes)',
+        healthCheckDuration: 0,
+      };
+      
+      // Should not throw - optional field, validation happens at runtime
+      expect(() => validateEnvironmentConfig(config)).not.toThrow();
+    });
+
+    it('should handle negative health check duration', () => {
+      const config: EnvironmentConfig = {
+        account: '123456789012',
+        region: 'us-east-1',
+        environment: 'test',
+        coverageThreshold: 80,
+        pollingInterval: 'rate(5 minutes)',
+        healthCheckDuration: -5,
+      };
+      
+      // Should not throw - optional field, validation happens at runtime
+      expect(() => validateEnvironmentConfig(config)).not.toThrow();
+    });
+
+    it('should handle very large health check duration', () => {
+      const config: EnvironmentConfig = {
+        account: '123456789012',
+        region: 'us-east-1',
+        environment: 'test',
+        coverageThreshold: 80,
+        pollingInterval: 'rate(5 minutes)',
+        healthCheckDuration: 1440, // 24 hours
+      };
+      
+      expect(() => validateEnvironmentConfig(config)).not.toThrow();
+    });
+  });
+
+  describe('Pipeline Configuration Consistency', () => {
+    it('should have consistent GitHub owner across environments', () => {
+      // All environments should use the same GitHub owner
+      expect(ENVIRONMENTS.test.githubOwner).toBe(ENVIRONMENTS.staging.githubOwner);
+      expect(ENVIRONMENTS.staging.githubOwner).toBe(ENVIRONMENTS.production.githubOwner);
+    });
+
+    it('should have consistent GitHub repo across environments', () => {
+      // All environments should use the same GitHub repo
+      expect(ENVIRONMENTS.test.githubRepo).toBe(ENVIRONMENTS.staging.githubRepo);
+      expect(ENVIRONMENTS.staging.githubRepo).toBe(ENVIRONMENTS.production.githubRepo);
+    });
+
+    it('should have consistent pipeline enabled flag across environments', () => {
+      // All environments should have pipeline enabled
+      expect(ENVIRONMENTS.test.pipelineEnabled).toBe(true);
+      expect(ENVIRONMENTS.staging.pipelineEnabled).toBe(true);
+      expect(ENVIRONMENTS.production.pipelineEnabled).toBe(true);
+    });
+
+    it('should have environment-specific health check durations', () => {
+      // Test and staging should have same duration
+      expect(ENVIRONMENTS.test.healthCheckDuration).toBe(5);
+      expect(ENVIRONMENTS.staging.healthCheckDuration).toBe(5);
+      // Production should have longer duration
+      expect(ENVIRONMENTS.production.healthCheckDuration).toBe(10);
+    });
+
+    it('should have environment-specific alarm prefixes', () => {
+      // Each environment should have its own alarm prefix
+      expect(ENVIRONMENTS.test.alarmPrefixes).toContain('kiro-worker-test');
+      expect(ENVIRONMENTS.staging.alarmPrefixes).toContain('kiro-worker-staging');
+      expect(ENVIRONMENTS.production.alarmPrefixes).toContain('kiro-worker-production');
+    });
+  });
+
+  describe('Pipeline Configuration Integration', () => {
+    it('should support full configuration with all fields', () => {
+      const fullConfig: EnvironmentConfig = {
+        account: '123456789012',
+        region: 'us-east-1',
+        environment: 'test',
+        vpcId: 'vpc-12345678',
+        coverageThreshold: 80,
+        pollingInterval: 'rate(5 minutes)',
+        codeBuildComputeType: 'MEDIUM',
+        codeBuildTimeout: 120,
+        lambdaTimeout: 10,
+        lockTTLHours: 4,
+        artifactRetentionDays: 60,
+        logRetentionDays: 14,
+        enableDetailedMetrics: true,
+        alertEmail: 'alerts@example.com',
+        githubOwner: 'my-org',
+        githubRepo: 'my-repo',
+        healthCheckDuration: 5,
+        alarmPrefixes: ['kiro-worker-test', 'custom-alarm'],
+        pipelineEnabled: true,
+      };
+      
+      expect(() => validateEnvironmentConfig(fullConfig)).not.toThrow();
+    });
+
+    it('should validate configuration retrieved by getEnvironmentConfig', () => {
+      const originalAccount = process.env.CDK_DEFAULT_ACCOUNT;
+      process.env.CDK_DEFAULT_ACCOUNT = '123456789012';
+      
+      try {
+        const config = getEnvironmentConfig('test');
+        expect(() => validateEnvironmentConfig(config)).not.toThrow();
+      } finally {
+        if (originalAccount !== undefined) {
+          process.env.CDK_DEFAULT_ACCOUNT = originalAccount;
+        } else {
+          delete process.env.CDK_DEFAULT_ACCOUNT;
+        }
+      }
+    });
+
+    it('should validate all predefined environments', () => {
+      const originalAccount = process.env.CDK_DEFAULT_ACCOUNT;
+      process.env.CDK_DEFAULT_ACCOUNT = '123456789012';
+      
+      try {
+        const environments = getAvailableEnvironments();
+        environments.forEach(envName => {
+          const config = getEnvironmentConfig(envName);
+          expect(() => validateEnvironmentConfig(config)).not.toThrow();
+        });
+      } finally {
+        if (originalAccount !== undefined) {
+          process.env.CDK_DEFAULT_ACCOUNT = originalAccount;
+        } else {
+          delete process.env.CDK_DEFAULT_ACCOUNT;
+        }
+      }
     });
   });
 });
