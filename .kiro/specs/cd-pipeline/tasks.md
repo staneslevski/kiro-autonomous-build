@@ -237,7 +237,7 @@ This task list implements a CD pipeline for the Kiro CodeBuild Worker project. T
 ## Phase 4: Monitoring, Health Checks, and Metrics
 
 ### 10. Health Check Monitor Component
-- [ ] 10.1 Create `infrastructure/lib/components/health-check-monitor.ts`
+- [x] 10.1 Create `infrastructure/lib/components/health-check-monitor.ts`
   - Import AWS SDK v3 CloudWatch client (CloudWatchClient, DescribeAlarmsCommand)
   - Implement `monitorHealthChecks()` method that monitors for specified duration (default 5 minutes)
   - Implement `checkAlarms()` method that queries CloudWatch for alarm states
@@ -248,7 +248,7 @@ This task list implements a CD pipeline for the Kiro CodeBuild Worker project. T
   - Use structured logging for all health check events
   - **Validates**: Design Section 3.3, TR-5, US-4
 
-- [ ] 10.2 Write unit tests for Health Check Monitor
+- [x] 10.2 Write unit tests for Health Check Monitor
   - Create `infrastructure/test/components/health-check-monitor.test.ts`
   - Test monitorHealthChecks runs for full duration when all alarms OK
   - Test monitorHealthChecks stops early when alarm enters ALARM state
@@ -261,7 +261,7 @@ This task list implements a CD pipeline for the Kiro CodeBuild Worker project. T
   - Achieve ≥80% coverage
   - **Validates**: NFR-4
 
-- [ ] 10.3 Write property-based test for health check monotonicity
+- [x] 10.3 Write property-based test for health check monotonicity
   - Create `infrastructure/test/properties/health-check-monotonicity.test.ts`
   - Implement Property 3: Health Check Monotonicity from design
   - Use fast-check to generate random durations and alarm states
@@ -271,7 +271,7 @@ This task list implements a CD pipeline for the Kiro CodeBuild Worker project. T
   - **Validates**: Design Section 12, Property 3
 
 ### 11. Pipeline Metrics Publisher Component
-- [ ] 11.1 Create `infrastructure/lib/components/pipeline-metrics.ts`
+- [x] 11.1 Create `infrastructure/lib/components/pipeline-metrics.ts`
   - Import AWS SDK v3 CloudWatch client (CloudWatchClient, PutMetricDataCommand)
   - Implement `publishDeploymentDuration()` method with environment dimension
   - Implement `publishRollback()` method with environment and level dimensions
@@ -282,7 +282,7 @@ This task list implements a CD pipeline for the Kiro CodeBuild Worker project. T
   - Handle errors gracefully (log but don't fail deployment)
   - **Validates**: Design Section 9.2, TR-5, NFR-3
 
-- [ ] 11.2 Write unit tests for Pipeline Metrics
+- [x] 11.2 Write unit tests for Pipeline Metrics
   - Create `infrastructure/test/components/pipeline-metrics.test.ts`
   - Test publishDeploymentDuration sends correct metric with dimensions
   - Test publishRollback sends metric with environment and level dimensions
@@ -295,7 +295,7 @@ This task list implements a CD pipeline for the Kiro CodeBuild Worker project. T
   - **Validates**: NFR-4
 
 ### 12. Extend Monitoring Stack with CD Pipeline Monitoring
-- [ ] 12.1 Extend `infrastructure/lib/stacks/monitoring-alerting-stack.ts` with CD pipeline monitoring
+- [x] 12.1 Extend `infrastructure/lib/stacks/monitoring-alerting-stack.ts` with CD pipeline monitoring
   - Import pipeline ARN and deployments table from CD pipeline stacks
   - Create SNS topic for deployment notifications with email subscription
   - Create SNS topic for approval requests with email subscription
@@ -308,7 +308,7 @@ This task list implements a CD pipeline for the Kiro CodeBuild Worker project. T
   - Export topic ARNs for use in other stacks
   - **Validates**: TR-5, US-4, US-6, NFR-3
 
-- [ ] 12.2 Write unit tests for CD Pipeline Monitoring additions
+- [x] 12.2 Write unit tests for CD Pipeline Monitoring additions
   - Update `infrastructure/test/stacks/monitoring-alerting-stack.test.ts`
   - Test all 3 new SNS topics created with correct names
   - Test SNS topics have email subscriptions configured

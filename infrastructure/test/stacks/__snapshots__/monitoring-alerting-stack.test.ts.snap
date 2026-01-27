@@ -1,5 +1,810 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`MonitoringAlertingStack > CD Pipeline Monitoring > Snapshot with CD Pipeline > should match snapshot with CD pipeline monitoring 1`] = `
+{
+  "Outputs": {
+    "AlertTopicArn": {
+      "Description": "ARN of the SNS topic for alert notifications",
+      "Export": {
+        "Name": "TestStack-AlertTopicArn",
+      },
+      "Value": {
+        "Ref": "AlertTopic2720D535",
+      },
+    },
+    "AlertTopicName": {
+      "Description": "Name of the SNS topic for alert notifications",
+      "Export": {
+        "Name": "TestStack-AlertTopicName",
+      },
+      "Value": {
+        "Fn::GetAtt": [
+          "AlertTopic2720D535",
+          "TopicName",
+        ],
+      },
+    },
+    "ApprovalRequestsTopicArn": {
+      "Description": "ARN of the SNS topic for approval requests",
+      "Export": {
+        "Name": "TestStack-ApprovalRequestsTopicArn",
+      },
+      "Value": {
+        "Ref": "ApprovalRequestsTopic710D8464",
+      },
+    },
+    "BuildDurationErrorThreshold": {
+      "Description": "Build duration error threshold in minutes",
+      "Value": "50",
+    },
+    "BuildDurationWarningThreshold": {
+      "Description": "Build duration warning threshold in minutes",
+      "Value": "40",
+    },
+    "BuildFailureRateErrorThreshold": {
+      "Description": "Build failure rate error threshold percentage",
+      "Value": "60",
+    },
+    "BuildFailureRateWarningThreshold": {
+      "Description": "Build failure rate warning threshold percentage",
+      "Value": "40",
+    },
+    "DeploymentNotificationsTopicArn": {
+      "Description": "ARN of the SNS topic for deployment notifications",
+      "Export": {
+        "Name": "TestStack-DeploymentNotificationsTopicArn",
+      },
+      "Value": {
+        "Ref": "DeploymentNotificationsTopic1944FF7B",
+      },
+    },
+    "PipelineDashboardName": {
+      "Description": "Name of the CloudWatch dashboard for pipeline metrics",
+      "Value": {
+        "Ref": "PipelineDashboard73DF2104",
+      },
+    },
+    "RollbackNotificationsTopicArn": {
+      "Description": "ARN of the SNS topic for rollback notifications",
+      "Export": {
+        "Name": "TestStack-RollbackNotificationsTopicArn",
+      },
+      "Value": {
+        "Ref": "RollbackNotificationsTopicFCECB39D",
+      },
+    },
+  },
+  "Parameters": {
+    "BootstrapVersion": {
+      "Default": "/cdk-bootstrap/hnb659fds/version",
+      "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+  },
+  "Resources": {
+    "AlertTopic2720D535": {
+      "Properties": {
+        "DisplayName": "Kiro Worker test Alerts",
+        "Tags": [
+          {
+            "Key": "Component",
+            "Value": "Monitoring",
+          },
+          {
+            "Key": "Purpose",
+            "Value": "Alerts",
+          },
+        ],
+        "TopicName": "kiro-worker-test-alerts",
+      },
+      "Type": "AWS::SNS::Topic",
+    },
+    "ApprovalRequestsTopic710D8464": {
+      "Properties": {
+        "DisplayName": "Kiro Pipeline test Approval Requests",
+        "TopicName": "kiro-pipeline-test-approval-requests",
+      },
+      "Type": "AWS::SNS::Topic",
+    },
+    "BuildDurationErrorE4A8F4FA": {
+      "Properties": {
+        "AlarmActions": [
+          {
+            "Ref": "AlertTopic2720D535",
+          },
+        ],
+        "AlarmDescription": "Build duration exceeded 50 minutes in test. Performance degradation detected.",
+        "AlarmName": "kiro-worker-test-build-duration-error",
+        "ComparisonOperator": "GreaterThanThreshold",
+        "DatapointsToAlarm": 1,
+        "Dimensions": [
+          {
+            "Name": "ProjectName",
+            "Value": "test-project",
+          },
+        ],
+        "EvaluationPeriods": 1,
+        "MetricName": "Duration",
+        "Namespace": "AWS/CodeBuild",
+        "Period": 300,
+        "Statistic": "Average",
+        "Threshold": 3000,
+        "TreatMissingData": "notBreaching",
+      },
+      "Type": "AWS::CloudWatch::Alarm",
+    },
+    "BuildDurationWarningE14B1CDE": {
+      "Properties": {
+        "AlarmActions": [
+          {
+            "Ref": "AlertTopic2720D535",
+          },
+        ],
+        "AlarmDescription": "Build duration exceeded 40 minutes in test",
+        "AlarmName": "kiro-worker-test-build-duration-warning",
+        "ComparisonOperator": "GreaterThanThreshold",
+        "DatapointsToAlarm": 2,
+        "Dimensions": [
+          {
+            "Name": "ProjectName",
+            "Value": "test-project",
+          },
+        ],
+        "EvaluationPeriods": 2,
+        "MetricName": "Duration",
+        "Namespace": "AWS/CodeBuild",
+        "Period": 600,
+        "Statistic": "Average",
+        "Threshold": 2400,
+        "TreatMissingData": "notBreaching",
+      },
+      "Type": "AWS::CloudWatch::Alarm",
+    },
+    "BuildFailureRateErrorB0B97F1F": {
+      "Properties": {
+        "AlarmActions": [
+          {
+            "Ref": "AlertTopic2720D535",
+          },
+        ],
+        "AlarmDescription": "Build failure rate exceeded 60% threshold in test. Immediate action required.",
+        "AlarmName": "kiro-worker-test-build-failure-rate-error",
+        "ComparisonOperator": "GreaterThanThreshold",
+        "DatapointsToAlarm": 1,
+        "Dimensions": [
+          {
+            "Name": "ProjectName",
+            "Value": "test-project",
+          },
+        ],
+        "EvaluationPeriods": 1,
+        "MetricName": "FailedBuilds",
+        "Namespace": "AWS/CodeBuild",
+        "Period": 300,
+        "Statistic": "Sum",
+        "Threshold": 3,
+        "TreatMissingData": "notBreaching",
+      },
+      "Type": "AWS::CloudWatch::Alarm",
+    },
+    "BuildFailureRateWarningF455F75D": {
+      "Properties": {
+        "AlarmActions": [
+          {
+            "Ref": "AlertTopic2720D535",
+          },
+        ],
+        "AlarmDescription": "Build failure rate exceeded 40% threshold in test",
+        "AlarmName": "kiro-worker-test-build-failure-rate-warning",
+        "ComparisonOperator": "GreaterThanThreshold",
+        "DatapointsToAlarm": 1,
+        "Dimensions": [
+          {
+            "Name": "ProjectName",
+            "Value": "test-project",
+          },
+        ],
+        "EvaluationPeriods": 1,
+        "MetricName": "FailedBuilds",
+        "Namespace": "AWS/CodeBuild",
+        "Period": 600,
+        "Statistic": "Sum",
+        "Threshold": 4,
+        "TreatMissingData": "notBreaching",
+      },
+      "Type": "AWS::CloudWatch::Alarm",
+    },
+    "BuildSuccessRate9357815B": {
+      "Properties": {
+        "AlarmActions": [
+          {
+            "Ref": "AlertTopic2720D535",
+          },
+        ],
+        "AlarmDescription": "Build success rate dropped below 75% in test",
+        "AlarmName": "kiro-worker-test-build-success-rate-low",
+        "ComparisonOperator": "LessThanThreshold",
+        "DatapointsToAlarm": 1,
+        "Dimensions": [
+          {
+            "Name": "ProjectName",
+            "Value": "test-project",
+          },
+        ],
+        "EvaluationPeriods": 1,
+        "MetricName": "SucceededBuilds",
+        "Namespace": "AWS/CodeBuild",
+        "Period": 1800,
+        "Statistic": "Sum",
+        "Threshold": 22.5,
+        "TreatMissingData": "notBreaching",
+      },
+      "Type": "AWS::CloudWatch::Alarm",
+    },
+    "DeploymentDurationAlarm8048DD93": {
+      "Properties": {
+        "AlarmActions": [
+          {
+            "Ref": "DeploymentNotificationsTopic1944FF7B",
+          },
+        ],
+        "AlarmDescription": "Alert when deployment takes longer than 60 minutes",
+        "AlarmName": "kiro-pipeline-test-deployment-duration",
+        "ComparisonOperator": "GreaterThanThreshold",
+        "EvaluationPeriods": 1,
+        "MetricName": "DeploymentDuration",
+        "Namespace": "KiroPipeline",
+        "Period": 300,
+        "Statistic": "Maximum",
+        "Threshold": 3600,
+        "TreatMissingData": "notBreaching",
+      },
+      "Type": "AWS::CloudWatch::Alarm",
+    },
+    "DeploymentNotificationsTopic1944FF7B": {
+      "Properties": {
+        "DisplayName": "Kiro Pipeline test Deployment Notifications",
+        "TopicName": "kiro-pipeline-test-deployment-notifications",
+      },
+      "Type": "AWS::SNS::Topic",
+    },
+    "DynamoDBReadThrottleError5F36FF96": {
+      "Properties": {
+        "AlarmActions": [
+          {
+            "Ref": "AlertTopic2720D535",
+          },
+        ],
+        "AlarmDescription": "DynamoDB read throttles exceeded threshold in test. Consider increasing capacity.",
+        "AlarmName": "kiro-worker-test-dynamodb-read-throttle-error",
+        "ComparisonOperator": "GreaterThanThreshold",
+        "DatapointsToAlarm": 1,
+        "EvaluationPeriods": 1,
+        "MetricName": "UserErrors",
+        "Namespace": "AWS/DynamoDB",
+        "Period": 300,
+        "Statistic": "Sum",
+        "Threshold": 20,
+        "TreatMissingData": "notBreaching",
+      },
+      "Type": "AWS::CloudWatch::Alarm",
+    },
+    "DynamoDBReadThrottleWarning484C916E": {
+      "Properties": {
+        "AlarmActions": [
+          {
+            "Ref": "AlertTopic2720D535",
+          },
+        ],
+        "AlarmDescription": "DynamoDB read throttles detected in test",
+        "AlarmName": "kiro-worker-test-dynamodb-read-throttle-warning",
+        "ComparisonOperator": "GreaterThanThreshold",
+        "DatapointsToAlarm": 1,
+        "EvaluationPeriods": 1,
+        "MetricName": "UserErrors",
+        "Namespace": "AWS/DynamoDB",
+        "Period": 300,
+        "Statistic": "Sum",
+        "Threshold": 10,
+        "TreatMissingData": "notBreaching",
+      },
+      "Type": "AWS::CloudWatch::Alarm",
+    },
+    "DynamoDBSystemErrorsF494CB7C": {
+      "Properties": {
+        "AlarmActions": [
+          {
+            "Ref": "AlertTopic2720D535",
+          },
+        ],
+        "AlarmDescription": "DynamoDB system errors detected in test",
+        "AlarmName": "kiro-worker-test-dynamodb-system-errors",
+        "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+        "DatapointsToAlarm": 1,
+        "EvaluationPeriods": 1,
+        "Metrics": [
+          {
+            "Expression": "putitem + getitem + deleteitem",
+            "Id": "expr_1",
+            "Label": "Sum of errors across all operations",
+            "ReturnData": true,
+          },
+          {
+            "Id": "putitem",
+            "MetricStat": {
+              "Metric": {
+                "Dimensions": [
+                  {
+                    "Name": "Operation",
+                    "Value": "PutItem",
+                  },
+                  {
+                    "Name": "TableName",
+                    "Value": "test-table",
+                  },
+                ],
+                "MetricName": "SystemErrors",
+                "Namespace": "AWS/DynamoDB",
+              },
+              "Period": 300,
+              "Stat": "Sum",
+            },
+            "ReturnData": false,
+          },
+          {
+            "Id": "getitem",
+            "MetricStat": {
+              "Metric": {
+                "Dimensions": [
+                  {
+                    "Name": "Operation",
+                    "Value": "GetItem",
+                  },
+                  {
+                    "Name": "TableName",
+                    "Value": "test-table",
+                  },
+                ],
+                "MetricName": "SystemErrors",
+                "Namespace": "AWS/DynamoDB",
+              },
+              "Period": 300,
+              "Stat": "Sum",
+            },
+            "ReturnData": false,
+          },
+          {
+            "Id": "deleteitem",
+            "MetricStat": {
+              "Metric": {
+                "Dimensions": [
+                  {
+                    "Name": "Operation",
+                    "Value": "DeleteItem",
+                  },
+                  {
+                    "Name": "TableName",
+                    "Value": "test-table",
+                  },
+                ],
+                "MetricName": "SystemErrors",
+                "Namespace": "AWS/DynamoDB",
+              },
+              "Period": 300,
+              "Stat": "Sum",
+            },
+            "ReturnData": false,
+          },
+        ],
+        "Threshold": 1,
+        "TreatMissingData": "notBreaching",
+      },
+      "Type": "AWS::CloudWatch::Alarm",
+    },
+    "LambdaConcurrentExecutions9F09F595": {
+      "Properties": {
+        "AlarmActions": [
+          {
+            "Ref": "AlertTopic2720D535",
+          },
+        ],
+        "AlarmDescription": "Lambda concurrent executions approaching limit in test",
+        "AlarmName": "kiro-worker-test-lambda-concurrency-high",
+        "ComparisonOperator": "GreaterThanThreshold",
+        "DatapointsToAlarm": 2,
+        "Dimensions": [
+          {
+            "Name": "FunctionName",
+            "Value": {
+              "Fn::Select": [
+                6,
+                {
+                  "Fn::Split": [
+                    ":",
+                    {
+                      "Fn::Join": [
+                        "",
+                        [
+                          "arn:",
+                          {
+                            "Ref": "AWS::Partition",
+                          },
+                          ":lambda:",
+                          {
+                            "Ref": "AWS::Region",
+                          },
+                          ":",
+                          {
+                            "Ref": "AWS::AccountId",
+                          },
+                          ":function:test-function",
+                        ],
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          },
+        ],
+        "EvaluationPeriods": 2,
+        "MetricName": "Invocations",
+        "Namespace": "AWS/Lambda",
+        "Period": 60,
+        "Statistic": "Sum",
+        "Threshold": 5,
+        "TreatMissingData": "notBreaching",
+      },
+      "Type": "AWS::CloudWatch::Alarm",
+    },
+    "LambdaDuration59E1FBB6": {
+      "Properties": {
+        "AlarmActions": [
+          {
+            "Ref": "AlertTopic2720D535",
+          },
+        ],
+        "AlarmDescription": "Lambda function duration approaching timeout in test",
+        "AlarmName": "kiro-worker-test-lambda-duration-high",
+        "ComparisonOperator": "GreaterThanThreshold",
+        "DatapointsToAlarm": 1,
+        "Dimensions": [
+          {
+            "Name": "FunctionName",
+            "Value": {
+              "Fn::Select": [
+                6,
+                {
+                  "Fn::Split": [
+                    ":",
+                    {
+                      "Fn::Join": [
+                        "",
+                        [
+                          "arn:",
+                          {
+                            "Ref": "AWS::Partition",
+                          },
+                          ":lambda:",
+                          {
+                            "Ref": "AWS::Region",
+                          },
+                          ":",
+                          {
+                            "Ref": "AWS::AccountId",
+                          },
+                          ":function:test-function",
+                        ],
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          },
+        ],
+        "EvaluationPeriods": 1,
+        "MetricName": "Duration",
+        "Namespace": "AWS/Lambda",
+        "Period": 300,
+        "Statistic": "Average",
+        "Threshold": 720000,
+        "TreatMissingData": "notBreaching",
+      },
+      "Type": "AWS::CloudWatch::Alarm",
+    },
+    "LambdaErrorRateError286F7F68": {
+      "Properties": {
+        "AlarmActions": [
+          {
+            "Ref": "AlertTopic2720D535",
+          },
+        ],
+        "AlarmDescription": "Lambda error rate exceeded 40% in test. Critical issue detected.",
+        "AlarmName": "kiro-worker-test-lambda-error-rate-error",
+        "ComparisonOperator": "GreaterThanThreshold",
+        "DatapointsToAlarm": 1,
+        "Dimensions": [
+          {
+            "Name": "FunctionName",
+            "Value": {
+              "Fn::Select": [
+                6,
+                {
+                  "Fn::Split": [
+                    ":",
+                    {
+                      "Fn::Join": [
+                        "",
+                        [
+                          "arn:",
+                          {
+                            "Ref": "AWS::Partition",
+                          },
+                          ":lambda:",
+                          {
+                            "Ref": "AWS::Region",
+                          },
+                          ":",
+                          {
+                            "Ref": "AWS::AccountId",
+                          },
+                          ":function:test-function",
+                        ],
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          },
+        ],
+        "EvaluationPeriods": 1,
+        "MetricName": "Errors",
+        "Namespace": "AWS/Lambda",
+        "Period": 300,
+        "Statistic": "Sum",
+        "Threshold": 2,
+        "TreatMissingData": "notBreaching",
+      },
+      "Type": "AWS::CloudWatch::Alarm",
+    },
+    "LambdaErrorRateWarning6455E70B": {
+      "Properties": {
+        "AlarmActions": [
+          {
+            "Ref": "AlertTopic2720D535",
+          },
+        ],
+        "AlarmDescription": "Lambda error rate exceeded 20% in test",
+        "AlarmName": "kiro-worker-test-lambda-error-rate-warning",
+        "ComparisonOperator": "GreaterThanThreshold",
+        "DatapointsToAlarm": 1,
+        "Dimensions": [
+          {
+            "Name": "FunctionName",
+            "Value": {
+              "Fn::Select": [
+                6,
+                {
+                  "Fn::Split": [
+                    ":",
+                    {
+                      "Fn::Join": [
+                        "",
+                        [
+                          "arn:",
+                          {
+                            "Ref": "AWS::Partition",
+                          },
+                          ":lambda:",
+                          {
+                            "Ref": "AWS::Region",
+                          },
+                          ":",
+                          {
+                            "Ref": "AWS::AccountId",
+                          },
+                          ":function:test-function",
+                        ],
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          },
+        ],
+        "EvaluationPeriods": 1,
+        "MetricName": "Errors",
+        "Namespace": "AWS/Lambda",
+        "Period": 600,
+        "Statistic": "Sum",
+        "Threshold": 2,
+        "TreatMissingData": "notBreaching",
+      },
+      "Type": "AWS::CloudWatch::Alarm",
+    },
+    "LambdaThrottles07F41D23": {
+      "Properties": {
+        "AlarmActions": [
+          {
+            "Ref": "AlertTopic2720D535",
+          },
+        ],
+        "AlarmDescription": "Lambda function is being throttled in test. Consider increasing concurrency limits.",
+        "AlarmName": "kiro-worker-test-lambda-throttles",
+        "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+        "DatapointsToAlarm": 1,
+        "Dimensions": [
+          {
+            "Name": "FunctionName",
+            "Value": {
+              "Fn::Select": [
+                6,
+                {
+                  "Fn::Split": [
+                    ":",
+                    {
+                      "Fn::Join": [
+                        "",
+                        [
+                          "arn:",
+                          {
+                            "Ref": "AWS::Partition",
+                          },
+                          ":lambda:",
+                          {
+                            "Ref": "AWS::Region",
+                          },
+                          ":",
+                          {
+                            "Ref": "AWS::AccountId",
+                          },
+                          ":function:test-function",
+                        ],
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          },
+        ],
+        "EvaluationPeriods": 1,
+        "MetricName": "Throttles",
+        "Namespace": "AWS/Lambda",
+        "Period": 300,
+        "Statistic": "Sum",
+        "Threshold": 1,
+        "TreatMissingData": "notBreaching",
+      },
+      "Type": "AWS::CloudWatch::Alarm",
+    },
+    "PipelineDashboard73DF2104": {
+      "Properties": {
+        "DashboardBody": {
+          "Fn::Join": [
+            "",
+            [
+              "{"widgets":[{"type":"metric","width":12,"height":6,"x":0,"y":0,"properties":{"view":"timeSeries","title":"Pipeline Executions","region":"",
+              {
+                "Ref": "AWS::Region",
+              },
+              "","metrics":[["AWS/CodePipeline","PipelineExecutionSuccess","PipelineName","",
+              {
+                "Fn::ImportValue": "MockPipelineStack:ExportsOutputRefMockPipeline449C191F1DC58D28",
+              },
+              "",{"period":3600,"stat":"Sum"}],["AWS/CodePipeline","PipelineExecutionFailure","PipelineName","",
+              {
+                "Fn::ImportValue": "MockPipelineStack:ExportsOutputRefMockPipeline449C191F1DC58D28",
+              },
+              "",{"period":3600,"stat":"Sum"}]],"yAxis":{}}},{"type":"metric","width":12,"height":6,"x":0,"y":6,"properties":{"view":"timeSeries","title":"Deployment Duration","region":"",
+              {
+                "Ref": "AWS::Region",
+              },
+              "","metrics":[["KiroPipeline","DeploymentDuration",{"period":3600}]],"yAxis":{}}},{"type":"metric","width":12,"height":6,"x":0,"y":12,"properties":{"view":"timeSeries","title":"Rollbacks","region":"",
+              {
+                "Ref": "AWS::Region",
+              },
+              "","metrics":[["KiroPipeline","RollbackCount",{"period":3600,"stat":"Sum"}]],"yAxis":{}}},{"type":"metric","width":12,"height":6,"x":0,"y":18,"properties":{"view":"timeSeries","title":"Test Success Rate","region":"",
+              {
+                "Ref": "AWS::Region",
+              },
+              "","metrics":[["KiroPipeline","TestSuccessRate",{"period":3600}]],"yAxis":{}}}]}",
+            ],
+          ],
+        },
+        "DashboardName": "kiro-pipeline-test-dashboard",
+      },
+      "Type": "AWS::CloudWatch::Dashboard",
+    },
+    "PipelineFailureAlarm20CC1062": {
+      "Properties": {
+        "AlarmActions": [
+          {
+            "Ref": "AlertTopic2720D535",
+          },
+        ],
+        "AlarmDescription": "Alert when pipeline fails 3 or more times in 1 hour",
+        "AlarmName": "kiro-pipeline-test-failures",
+        "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+        "Dimensions": [
+          {
+            "Name": "PipelineName",
+            "Value": {
+              "Fn::ImportValue": "MockPipelineStack:ExportsOutputRefMockPipeline449C191F1DC58D28",
+            },
+          },
+        ],
+        "EvaluationPeriods": 1,
+        "MetricName": "PipelineExecutionFailure",
+        "Namespace": "AWS/CodePipeline",
+        "Period": 3600,
+        "Statistic": "Sum",
+        "Threshold": 3,
+        "TreatMissingData": "notBreaching",
+      },
+      "Type": "AWS::CloudWatch::Alarm",
+    },
+    "RollbackAlarmB0789DF6": {
+      "Properties": {
+        "AlarmActions": [
+          {
+            "Ref": "RollbackNotificationsTopicFCECB39D",
+          },
+        ],
+        "AlarmDescription": "Alert when 2 or more rollbacks occur in 1 hour",
+        "AlarmName": "kiro-pipeline-test-rollbacks",
+        "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+        "EvaluationPeriods": 1,
+        "MetricName": "RollbackCount",
+        "Namespace": "KiroPipeline",
+        "Period": 3600,
+        "Statistic": "Sum",
+        "Threshold": 2,
+        "TreatMissingData": "notBreaching",
+      },
+      "Type": "AWS::CloudWatch::Alarm",
+    },
+    "RollbackNotificationsTopicFCECB39D": {
+      "Properties": {
+        "DisplayName": "Kiro Pipeline test Rollback Notifications",
+        "TopicName": "kiro-pipeline-test-rollback-notifications",
+      },
+      "Type": "AWS::SNS::Topic",
+    },
+  },
+  "Rules": {
+    "CheckBootstrapVersion": {
+      "Assertions": [
+        {
+          "Assert": {
+            "Fn::Not": [
+              {
+                "Fn::Contains": [
+                  [
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5",
+                  ],
+                  {
+                    "Ref": "BootstrapVersion",
+                  },
+                ],
+              },
+            ],
+          },
+          "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI.",
+        },
+      ],
+    },
+  },
+}
+`;
+
 exports[`MonitoringAlertingStack > Snapshot Tests > should match snapshot for production environment 1`] = `
 {
   "Outputs": {

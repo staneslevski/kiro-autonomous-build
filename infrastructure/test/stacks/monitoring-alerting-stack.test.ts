@@ -15,6 +15,8 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import * as cdk from 'aws-cdk-lib';
 import { Template, Match } from 'aws-cdk-lib/assertions';
 import * as codebuild from 'aws-cdk-lib/aws-codebuild';
+import * as codepipeline from 'aws-cdk-lib/aws-codepipeline';
+import * as codepipeline_actions from 'aws-cdk-lib/aws-codepipeline-actions';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import { MonitoringAlertingStack } from '../../lib/stacks/monitoring-alerting-stack';
@@ -608,6 +610,313 @@ describe('MonitoringAlertingStack', () => {
 
       const template = Template.fromStack(stack);
       expect(template.toJSON()).toMatchSnapshot();
+    });
+  });
+  
+  describe('CD Pipeline Monitoring', () => {
+    let mockPipeline: codepipeline.IPipeline;
+    let mockDeploymentsTable: dynamodb.ITable;
+    
+    beforeEach(() => {
+      const mockStack = new cdk.Stack(app, 'MockPipelineStack');
+      
+      // Create a real pipeline for testing (minimal configuration with 2 stages)
+      const sourceOutput = new codepipeline.Artifact();
+      
+      mockPipeline = new codepipeline.Pipeline(mockStack, 'MockPipeline', {
+        pipelineName: 'test-pipeline',
+        stages: [
+          {
+            stageName: 'Source',
+            actions: [
+              new codepipeline_actions.GitHubSourceAction({
+                actionName: 'GitHub',
+                owner: 'test-owner',
+                repo: 'test-repo',
+                oauthToken: cdk.SecretValue.unsafePlainText('test-token'),
+                output: sourceOutput,
+              }),
+            ],
+          },
+          {
+            stageName: 'Build',
+            actions: [
+              new codepipeline_actions.ManualApprovalAction({
+                actionName: 'Approve',
+              }),
+            ],
+          },
+        ],
+      });
+      
+      mockDeploymentsTable = dynamodb.Table.fromTableName(
+        mockStack,
+        'MockDeploymentsTable',
+        'test-deployments-table'
+      );
+    });
+    
+    describe('SNS Topics', () => {
+      it('should create all 3 new SNS topics with correct names', () => {
+        const stack = new MonitoringAlertingStack(app, 'TestStack', {
+          config: testConfig,
+          codeBuildProject: mockCodeBuildProject,
+          lambdaFunction: mockLambdaFunction,
+          dynamoDBTable: mockDynamoDBTable,
+          cdPipeline: mockPipeline,
+          deploymentsTable: mockDeploymentsTable,
+        });
+
+        const template = Template.fromStack(stack);
+        
+        // Should have 4 SNS topics total (1 alert + 3 CD pipeline)
+        template.resourceCountIs('AWS::SNS::Topic', 4);
+        
+        // Verify deployment notifications topic
+        template.hasResourceProperties('AWS::SNS::Topic', {
+          TopicName: 'kiro-pipeline-test-deployment-notifications',
+          DisplayName: 'Kiro Pipeline test Deployment Notifications',
+        });
+        
+        // Verify approval requests topic
+        template.hasResourceProperties('AWS::SNS::Topic', {
+          TopicName: 'kiro-pipeline-test-approval-requests',
+          DisplayName: 'Kiro Pipeline test Approval Requests',
+        });
+        
+        // Verify rollback notifications topic
+        template.hasResourceProperties('AWS::SNS::Topic', {
+          TopicName: 'kiro-pipeline-test-rollback-notifications',
+          DisplayName: 'Kiro Pipeline test Rollback Notifications',
+        });
+      });
+      
+      it('should have email subscriptions configured when alertEmail provided', () => {
+        const stack = new MonitoringAlertingStack(app, 'TestStack', {
+          config: testConfig,
+          codeBuildProject: mockCodeBuildProject,
+          lambdaFunction: mockLambdaFunction,
+          dynamoDBTable: mockDynamoDBTable,
+          cdPipeline: mockPipeline,
+          deploymentsTable: mockDeploymentsTable,
+          alertEmail: 'alerts@example.com',
+        });
+
+        const template = Template.fromStack(stack);
+        
+        // Should have 4 email subscriptions (1 alert + 3 CD pipeline)
+        template.resourceCountIs('AWS::SNS::Subscription', 4);
+        
+        // All should be email subscriptions to the same address
+        template.hasResourceProperties('AWS::SNS::Subscription', {
+          Protocol: 'email',
+          Endpoint: 'alerts@example.com',
+        });
+      });
+      
+      it('should expose SNS topics as public properties', () => {
+        const stack = new MonitoringAlertingStack(app, 'TestStack', {
+          config: testConfig,
+          codeBuildProject: mockCodeBuildProject,
+          lambdaFunction: mockLambdaFunction,
+          dynamoDBTable: mockDynamoDBTable,
+          cdPipeline: mockPipeline,
+          deploymentsTable: mockDeploymentsTable,
+        });
+
+        expect(stack.deploymentNotificationsTopic).toBeDefined();
+        expect(stack.approvalRequestsTopic).toBeDefined();
+        expect(stack.rollbackNotificationsTopic).toBeDefined();
+      });
+    });
+    
+    describe('CloudWatch Alarms', () => {
+      it('should create CloudWatch alarms with correct thresholds', () => {
+        const stack = new MonitoringAlertingStack(app, 'TestStack', {
+          config: testConfig,
+          codeBuildProject: mockCodeBuildProject,
+          lambdaFunction: mockLambdaFunction,
+          dynamoDBTable: mockDynamoDBTable,
+          cdPipeline: mockPipeline,
+          deploymentsTable: mockDeploymentsTable,
+        });
+
+        const template = Template.fromStack(stack);
+        
+        // Should have 16 alarms total (13 existing + 3 CD pipeline)
+        template.resourceCountIs('AWS::CloudWatch::Alarm', 16);
+        
+        // Pipeline failure alarm (3 failures in 1 hour)
+        template.hasResourceProperties('AWS::CloudWatch::Alarm', {
+          AlarmName: 'kiro-pipeline-test-failures',
+          AlarmDescription: 'Alert when pipeline fails 3 or more times in 1 hour',
+          Threshold: 3,
+          ComparisonOperator: 'GreaterThanOrEqualToThreshold',
+        });
+        
+        // Rollback alarm (2 rollbacks in 1 hour)
+        template.hasResourceProperties('AWS::CloudWatch::Alarm', {
+          AlarmName: 'kiro-pipeline-test-rollbacks',
+          AlarmDescription: 'Alert when 2 or more rollbacks occur in 1 hour',
+          Threshold: 2,
+          ComparisonOperator: 'GreaterThanOrEqualToThreshold',
+        });
+        
+        // Deployment duration alarm (> 60 minutes = 3600 seconds)
+        template.hasResourceProperties('AWS::CloudWatch::Alarm', {
+          AlarmName: 'kiro-pipeline-test-deployment-duration',
+          AlarmDescription: 'Alert when deployment takes longer than 60 minutes',
+          Threshold: 3600,
+          ComparisonOperator: 'GreaterThanThreshold',
+        });
+      });
+      
+      it('should have SNS actions configured for alarms', () => {
+        const stack = new MonitoringAlertingStack(app, 'TestStack', {
+          config: testConfig,
+          codeBuildProject: mockCodeBuildProject,
+          lambdaFunction: mockLambdaFunction,
+          dynamoDBTable: mockDynamoDBTable,
+          cdPipeline: mockPipeline,
+          deploymentsTable: mockDeploymentsTable,
+        });
+
+        const template = Template.fromStack(stack);
+        
+        // Pipeline failure alarm should send to alert topic
+        template.hasResourceProperties('AWS::CloudWatch::Alarm', {
+          AlarmName: 'kiro-pipeline-test-failures',
+          AlarmActions: Match.arrayWith([
+            Match.objectLike({
+              Ref: Match.stringLikeRegexp('AlertTopic'),
+            }),
+          ]),
+        });
+        
+        // Rollback alarm should send to rollback notifications topic
+        template.hasResourceProperties('AWS::CloudWatch::Alarm', {
+          AlarmName: 'kiro-pipeline-test-rollbacks',
+          AlarmActions: Match.arrayWith([
+            Match.objectLike({
+              Ref: Match.stringLikeRegexp('RollbackNotificationsTopic'),
+            }),
+          ]),
+        });
+        
+        // Deployment duration alarm should send to deployment notifications topic
+        template.hasResourceProperties('AWS::CloudWatch::Alarm', {
+          AlarmName: 'kiro-pipeline-test-deployment-duration',
+          AlarmActions: Match.arrayWith([
+            Match.objectLike({
+              Ref: Match.stringLikeRegexp('DeploymentNotificationsTopic'),
+            }),
+          ]),
+        });
+      });
+    });
+    
+    describe('CloudWatch Dashboard', () => {
+      it('should create dashboard with pipeline metrics widgets', () => {
+        const stack = new MonitoringAlertingStack(app, 'TestStack', {
+          config: testConfig,
+          codeBuildProject: mockCodeBuildProject,
+          lambdaFunction: mockLambdaFunction,
+          dynamoDBTable: mockDynamoDBTable,
+          cdPipeline: mockPipeline,
+          deploymentsTable: mockDeploymentsTable,
+        });
+
+        const template = Template.fromStack(stack);
+        
+        // Should create dashboard
+        template.hasResourceProperties('AWS::CloudWatch::Dashboard', {
+          DashboardName: 'kiro-pipeline-test-dashboard',
+        });
+        
+        // Dashboard should have widgets (verified by checking DashboardBody exists)
+        template.hasResourceProperties('AWS::CloudWatch::Dashboard', {
+          DashboardBody: Match.objectLike({
+            'Fn::Join': Match.arrayWith([
+              Match.arrayWith([
+                Match.stringLikeRegexp('Pipeline Executions'),
+              ]),
+            ]),
+          }),
+        });
+      });
+      
+      it('should expose dashboard as public property', () => {
+        const stack = new MonitoringAlertingStack(app, 'TestStack', {
+          config: testConfig,
+          codeBuildProject: mockCodeBuildProject,
+          lambdaFunction: mockLambdaFunction,
+          dynamoDBTable: mockDynamoDBTable,
+          cdPipeline: mockPipeline,
+          deploymentsTable: mockDeploymentsTable,
+        });
+
+        expect(stack.pipelineDashboard).toBeDefined();
+      });
+    });
+    
+    describe('CloudFormation Outputs', () => {
+      it('should export topic ARNs for CD pipeline topics', () => {
+        const stack = new MonitoringAlertingStack(app, 'TestStack', {
+          config: testConfig,
+          codeBuildProject: mockCodeBuildProject,
+          lambdaFunction: mockLambdaFunction,
+          dynamoDBTable: mockDynamoDBTable,
+          cdPipeline: mockPipeline,
+          deploymentsTable: mockDeploymentsTable,
+        });
+
+        const template = Template.fromStack(stack);
+        
+        // Verify deployment notifications topic ARN output
+        template.hasOutput('DeploymentNotificationsTopicArn', {
+          Description: 'ARN of the SNS topic for deployment notifications',
+          Export: {
+            Name: 'TestStack-DeploymentNotificationsTopicArn',
+          },
+        });
+        
+        // Verify approval requests topic ARN output
+        template.hasOutput('ApprovalRequestsTopicArn', {
+          Description: 'ARN of the SNS topic for approval requests',
+          Export: {
+            Name: 'TestStack-ApprovalRequestsTopicArn',
+          },
+        });
+        
+        // Verify rollback notifications topic ARN output
+        template.hasOutput('RollbackNotificationsTopicArn', {
+          Description: 'ARN of the SNS topic for rollback notifications',
+          Export: {
+            Name: 'TestStack-RollbackNotificationsTopicArn',
+          },
+        });
+        
+        // Verify dashboard name output
+        template.hasOutput('PipelineDashboardName', {
+          Description: 'Name of the CloudWatch dashboard for pipeline metrics',
+        });
+      });
+    });
+    
+    describe('Snapshot with CD Pipeline', () => {
+      it('should match snapshot with CD pipeline monitoring', () => {
+        const stack = new MonitoringAlertingStack(app, 'TestStack', {
+          config: testConfig,
+          codeBuildProject: mockCodeBuildProject,
+          lambdaFunction: mockLambdaFunction,
+          dynamoDBTable: mockDynamoDBTable,
+          cdPipeline: mockPipeline,
+          deploymentsTable: mockDeploymentsTable,
+        });
+
+        const template = Template.fromStack(stack);
+        expect(template.toJSON()).toMatchSnapshot();
+      });
     });
   });
 });

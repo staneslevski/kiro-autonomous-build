@@ -21,6 +21,7 @@ import * as subscriptions from 'aws-cdk-lib/aws-sns-subscriptions';
 import * as cloudwatch from 'aws-cdk-lib/aws-cloudwatch';
 import * as actions from 'aws-cdk-lib/aws-cloudwatch-actions';
 import * as codebuild from 'aws-cdk-lib/aws-codebuild';
+import * as codepipeline from 'aws-cdk-lib/aws-codepipeline';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import { Construct } from 'constructs';
@@ -139,6 +140,12 @@ export interface MonitoringAlertingStackProps extends cdk.StackProps {
   
   /** Optional email address for alert notifications */
   alertEmail?: string;
+  
+  /** Optional CD Pipeline to monitor (for CD pipeline monitoring) */
+  cdPipeline?: codepipeline.IPipeline;
+  
+  /** Optional deployments table to monitor (for CD pipeline monitoring) */
+  deploymentsTable?: dynamodb.ITable;
 }
 
 /**
@@ -159,11 +166,23 @@ export class MonitoringAlertingStack extends cdk.Stack {
   
   /** Alarm thresholds for this environment */
   public readonly alarmThresholds: AlarmThresholds;
+  
+  /** SNS topic for deployment notifications (CD pipeline) */
+  public readonly deploymentNotificationsTopic?: sns.Topic;
+  
+  /** SNS topic for approval requests (CD pipeline) */
+  public readonly approvalRequestsTopic?: sns.Topic;
+  
+  /** SNS topic for rollback notifications (CD pipeline) */
+  public readonly rollbackNotificationsTopic?: sns.Topic;
+  
+  /** CloudWatch dashboard for pipeline metrics */
+  public readonly pipelineDashboard?: cloudwatch.Dashboard;
 
   constructor(scope: Construct, id: string, props: MonitoringAlertingStackProps) {
     super(scope, id, props);
 
-    const { config, codeBuildProject, lambdaFunction, dynamoDBTable, alertEmail } = props;
+    const { config, codeBuildProject, lambdaFunction, dynamoDBTable, alertEmail, cdPipeline, deploymentsTable } = props;
     const environment = config.environment;
 
     // Configure environment-specific alarm thresholds
@@ -183,6 +202,11 @@ export class MonitoringAlertingStack extends cdk.Stack {
 
     // Create resource metric alarms
     this.createResourceMetricAlarms(environment, codeBuildProject, lambdaFunction);
+    
+    // Create CD pipeline monitoring if pipeline is provided
+    if (cdPipeline && deploymentsTable) {
+      this.createCDPipelineMonitoring(environment, cdPipeline, deploymentsTable, alertEmail);
+    }
 
     // Add stack outputs
     this.createOutputs();
@@ -549,6 +573,222 @@ export class MonitoringAlertingStack extends cdk.Stack {
     // These would need to be created using custom metrics if CodeBuild publishes them
     // or through CloudWatch Container Insights if enabled
   }
+  
+  /**
+   * Create CD Pipeline monitoring infrastructure
+   * 
+   * Creates SNS topics, CloudWatch alarms, and dashboard for CD pipeline monitoring.
+   * 
+   * @param environment - Environment name
+   * @param pipeline - CodePipeline to monitor
+   * @param deploymentsTable - DynamoDB table for deployment tracking
+   * @param alertEmail - Optional email for notifications
+   */
+  private createCDPipelineMonitoring(
+    environment: string,
+    pipeline: codepipeline.IPipeline,
+    deploymentsTable: dynamodb.ITable,
+    alertEmail?: string
+  ): void {
+    // Create SNS topics for CD pipeline notifications
+    this.deploymentNotificationsTopic = new sns.Topic(this, 'DeploymentNotificationsTopic', {
+      topicName: `kiro-pipeline-${environment}-deployment-notifications`,
+      displayName: `Kiro Pipeline ${environment} Deployment Notifications`,
+    });
+    
+    if (alertEmail) {
+      this.deploymentNotificationsTopic.addSubscription(
+        new subscriptions.EmailSubscription(alertEmail)
+      );
+    }
+    
+    this.approvalRequestsTopic = new sns.Topic(this, 'ApprovalRequestsTopic', {
+      topicName: `kiro-pipeline-${environment}-approval-requests`,
+      displayName: `Kiro Pipeline ${environment} Approval Requests`,
+    });
+    
+    if (alertEmail) {
+      this.approvalRequestsTopic.addSubscription(
+        new subscriptions.EmailSubscription(alertEmail)
+      );
+    }
+    
+    this.rollbackNotificationsTopic = new sns.Topic(this, 'RollbackNotificationsTopic', {
+      topicName: `kiro-pipeline-${environment}-rollback-notifications`,
+      displayName: `Kiro Pipeline ${environment} Rollback Notifications`,
+    });
+    
+    if (alertEmail) {
+      this.rollbackNotificationsTopic.addSubscription(
+        new subscriptions.EmailSubscription(alertEmail)
+      );
+    }
+    
+    // Create CloudWatch alarms for CD pipeline
+    this.createPipelineAlarms(environment, pipeline);
+    
+    // Create CloudWatch dashboard for pipeline metrics
+    this.createPipelineDashboard(environment, pipeline);
+  }
+  
+  /**
+   * Create CloudWatch alarms for CD pipeline
+   * 
+   * @param environment - Environment name
+   * @param pipeline - CodePipeline to monitor
+   */
+  private createPipelineAlarms(
+    environment: string,
+    pipeline: codepipeline.IPipeline
+  ): void {
+    // Pipeline failure alarm (threshold: 3 failures in 1 hour)
+    const pipelineFailureAlarm = new cloudwatch.Alarm(this, 'PipelineFailureAlarm', {
+      alarmName: `kiro-pipeline-${environment}-failures`,
+      alarmDescription: 'Alert when pipeline fails 3 or more times in 1 hour',
+      metric: new cloudwatch.Metric({
+        namespace: 'AWS/CodePipeline',
+        metricName: 'PipelineExecutionFailure',
+        dimensionsMap: {
+          PipelineName: pipeline.pipelineName,
+        },
+        statistic: 'Sum',
+        period: cdk.Duration.hours(1),
+      }),
+      threshold: 3,
+      evaluationPeriods: 1,
+      comparisonOperator: cloudwatch.ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+      treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
+    });
+    
+    pipelineFailureAlarm.addAlarmAction(new actions.SnsAction(this.alertTopic));
+    
+    // Rollback count alarm (threshold: 2 rollbacks in 1 hour)
+    const rollbackAlarm = new cloudwatch.Alarm(this, 'RollbackAlarm', {
+      alarmName: `kiro-pipeline-${environment}-rollbacks`,
+      alarmDescription: 'Alert when 2 or more rollbacks occur in 1 hour',
+      metric: new cloudwatch.Metric({
+        namespace: 'KiroPipeline',
+        metricName: 'RollbackCount',
+        statistic: 'Sum',
+        period: cdk.Duration.hours(1),
+      }),
+      threshold: 2,
+      evaluationPeriods: 1,
+      comparisonOperator: cloudwatch.ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+      treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
+    });
+    
+    rollbackAlarm.addAlarmAction(new actions.SnsAction(this.rollbackNotificationsTopic!));
+    
+    // Deployment duration alarm (threshold: > 60 minutes)
+    const deploymentDurationAlarm = new cloudwatch.Alarm(this, 'DeploymentDurationAlarm', {
+      alarmName: `kiro-pipeline-${environment}-deployment-duration`,
+      alarmDescription: 'Alert when deployment takes longer than 60 minutes',
+      metric: new cloudwatch.Metric({
+        namespace: 'KiroPipeline',
+        metricName: 'DeploymentDuration',
+        statistic: 'Maximum',
+        period: cdk.Duration.minutes(5),
+      }),
+      threshold: 3600, // 60 minutes in seconds
+      evaluationPeriods: 1,
+      comparisonOperator: cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
+      treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
+    });
+    
+    deploymentDurationAlarm.addAlarmAction(new actions.SnsAction(this.deploymentNotificationsTopic!));
+  }
+  
+  /**
+   * Create CloudWatch dashboard for pipeline metrics
+   * 
+   * @param environment - Environment name
+   * @param pipeline - CodePipeline to monitor
+   */
+  private createPipelineDashboard(
+    environment: string,
+    pipeline: codepipeline.IPipeline
+  ): void {
+    this.pipelineDashboard = new cloudwatch.Dashboard(this, 'PipelineDashboard', {
+      dashboardName: `kiro-pipeline-${environment}-dashboard`,
+    });
+    
+    // Pipeline execution metrics
+    this.pipelineDashboard.addWidgets(
+      new cloudwatch.GraphWidget({
+        title: 'Pipeline Executions',
+        left: [
+          new cloudwatch.Metric({
+            namespace: 'AWS/CodePipeline',
+            metricName: 'PipelineExecutionSuccess',
+            dimensionsMap: {
+              PipelineName: pipeline.pipelineName,
+            },
+            statistic: 'Sum',
+            period: cdk.Duration.hours(1),
+          }),
+          new cloudwatch.Metric({
+            namespace: 'AWS/CodePipeline',
+            metricName: 'PipelineExecutionFailure',
+            dimensionsMap: {
+              PipelineName: pipeline.pipelineName,
+            },
+            statistic: 'Sum',
+            period: cdk.Duration.hours(1),
+          }),
+        ],
+        width: 12,
+      })
+    );
+    
+    // Deployment duration
+    this.pipelineDashboard.addWidgets(
+      new cloudwatch.GraphWidget({
+        title: 'Deployment Duration',
+        left: [
+          new cloudwatch.Metric({
+            namespace: 'KiroPipeline',
+            metricName: 'DeploymentDuration',
+            statistic: 'Average',
+            period: cdk.Duration.hours(1),
+          }),
+        ],
+        width: 12,
+      })
+    );
+    
+    // Rollback metrics
+    this.pipelineDashboard.addWidgets(
+      new cloudwatch.GraphWidget({
+        title: 'Rollbacks',
+        left: [
+          new cloudwatch.Metric({
+            namespace: 'KiroPipeline',
+            metricName: 'RollbackCount',
+            statistic: 'Sum',
+            period: cdk.Duration.hours(1),
+          }),
+        ],
+        width: 12,
+      })
+    );
+    
+    // Test success rate
+    this.pipelineDashboard.addWidgets(
+      new cloudwatch.GraphWidget({
+        title: 'Test Success Rate',
+        left: [
+          new cloudwatch.Metric({
+            namespace: 'KiroPipeline',
+            metricName: 'TestSuccessRate',
+            statistic: 'Average',
+            period: cdk.Duration.hours(1),
+          }),
+        ],
+        width: 12,
+      })
+    );
+  }
 
   /**
    * Create CloudFormation outputs for cross-stack references
@@ -566,6 +806,38 @@ export class MonitoringAlertingStack extends cdk.Stack {
       description: 'Name of the SNS topic for alert notifications',
       exportName: `${this.stackName}-AlertTopicName`,
     });
+    
+    // CD Pipeline SNS topic outputs (if created)
+    if (this.deploymentNotificationsTopic) {
+      new cdk.CfnOutput(this, 'DeploymentNotificationsTopicArn', {
+        value: this.deploymentNotificationsTopic.topicArn,
+        description: 'ARN of the SNS topic for deployment notifications',
+        exportName: `${this.stackName}-DeploymentNotificationsTopicArn`,
+      });
+    }
+    
+    if (this.approvalRequestsTopic) {
+      new cdk.CfnOutput(this, 'ApprovalRequestsTopicArn', {
+        value: this.approvalRequestsTopic.topicArn,
+        description: 'ARN of the SNS topic for approval requests',
+        exportName: `${this.stackName}-ApprovalRequestsTopicArn`,
+      });
+    }
+    
+    if (this.rollbackNotificationsTopic) {
+      new cdk.CfnOutput(this, 'RollbackNotificationsTopicArn', {
+        value: this.rollbackNotificationsTopic.topicArn,
+        description: 'ARN of the SNS topic for rollback notifications',
+        exportName: `${this.stackName}-RollbackNotificationsTopicArn`,
+      });
+    }
+    
+    if (this.pipelineDashboard) {
+      new cdk.CfnOutput(this, 'PipelineDashboardName', {
+        value: this.pipelineDashboard.dashboardName,
+        description: 'Name of the CloudWatch dashboard for pipeline metrics',
+      });
+    }
 
     // Alarm threshold outputs for reference
     new cdk.CfnOutput(this, 'BuildFailureRateWarningThreshold', {
