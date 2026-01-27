@@ -104,6 +104,39 @@ This directory contains steering documentation that guides development practices
 - Maintain ≥80% code coverage
 - Keep main branch always deployable
 
+### 6. Deployment Strategy Standards
+**File**: `deployment-strategy.md`
+
+**Purpose**: Comprehensive deployment strategy that all code must align with.
+
+**CRITICAL REQUIREMENTS**:
+- ⚠️ **ALL CODE MUST BE ENVIRONMENT-AWARE** - Use environment variables, never hardcode
+- ⚠️ **SUPPORT MULTI-ENVIRONMENT DEPLOYMENT** - Test, staging, production
+- ⚠️ **FOLLOW DEPLOYMENT ORDER** - Test → Staging → Production
+- ⚠️ **INCLUDE ROLLBACK SUPPORT** - All changes must be reversible
+- ⚠️ **VALIDATE BEFORE AND AFTER DEPLOYMENT** - Automated validation required
+
+**Covers**:
+- Multi-environment architecture (test, staging, production)
+- Environment isolation requirements
+- Deployment pipeline and workflow
+- Configuration management (secrets, parameters)
+- Pre and post-deployment validation
+- Rollback strategy and procedures
+- Monitoring and alerting requirements
+- Deployment best practices
+- Compliance requirements
+
+**Key Points**:
+- Use environment-specific resource naming
+- Store secrets in AWS Secrets Manager
+- Store configuration in Parameter Store
+- Deploy incrementally across environments
+- Validate thoroughly at each stage
+- Support fast rollback (< 15 minutes)
+- Monitor deployment metrics
+- Document all deployments
+
 ## Quick Reference
 
 ### Before Starting Development
@@ -112,11 +145,13 @@ This directory contains steering documentation that guides development practices
 2. ✅ Read `typescript-standards.md` for coding guidelines
 3. ✅ Read `testing-standards.md` for testing requirements
 4. ✅ Read `git-workflow.md` for Git practices
-5. ✅ Read `aws-cdk-standards.md` if working on infrastructure
+5. ✅ Read `deployment-strategy.md` for deployment requirements
+6. ✅ Read `aws-cdk-standards.md` if working on infrastructure
 
 ### Before Committing Code
 
 - [ ] Code follows TypeScript standards
+- [ ] Code aligns with deployment strategy (environment-aware)
 - [ ] All tests pass: `npm test`
 - [ ] Coverage ≥80%: `npm run test:coverage`
 - [ ] Linting passes: `npm run lint`
@@ -127,6 +162,8 @@ This directory contains steering documentation that guides development practices
 
 - [ ] All tests pass in CI/CD
 - [ ] Code coverage ≥80%
+- [ ] Code is environment-aware and supports all environments
+- [ ] Rollback plan documented (if applicable)
 - [ ] Self-review completed
 - [ ] Documentation updated
 - [ ] PR description filled out completely

@@ -185,10 +185,12 @@ env:
 ## Documentation
 
 - **[Deployment Guide](docs/deployment/DEPLOYMENT.md)**: Detailed deployment instructions
+- **[Deployment Strategy](.kiro/steering/deployment-strategy.md)**: Deployment strategy that all code must follow
 - **[Prerequisites](docs/deployment/prerequisites.md)**: Required tools and setup
 - **[IAM Permissions](docs/deployment/iam-permissions.md)**: Required AWS permissions
 - **[Troubleshooting](docs/deployment/troubleshooting.md)**: Common issues and solutions
 - **[Architecture](docs/architecture/)**: System design and component details
+- **[Steering Documentation](.kiro/steering/)**: All coding standards and guidelines
 
 ## Development
 
@@ -262,10 +264,13 @@ kiro-codebuild-worker/
 ## Contributing
 
 1. Read all steering documentation in `.kiro/steering/`
+   - **CRITICAL**: Read `deployment-strategy.md` - all code must align with deployment strategy
 2. Follow TypeScript standards
 3. Follow testing standards (≥80% coverage, all tests pass)
-4. Follow Git workflow (conventional commits, PR process)
-5. Update documentation as needed
+4. Follow deployment strategy (environment-aware, multi-environment support)
+5. Follow Git workflow (conventional commits, PR process)
+6. Follow AWS CDK standards for infrastructure changes
+7. Update documentation as needed
 
 ## Support
 
