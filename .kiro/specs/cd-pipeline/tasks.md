@@ -616,7 +616,7 @@ This task list implements a CD pipeline for the Kiro CodeBuild Worker project. T
   - Include example commands for each step
   - **Validates**: NFR-4
 
-- [ ] 21.2 Create rollback documentation `docs/deployment/cd-pipeline-rollback.md`
+- [x] 21.2 Create rollback documentation `docs/deployment/cd-pipeline-rollback.md`
   - Document automated rollback process (triggers, flow, validation)
   - Document manual rollback procedures (when to use, steps)
   - Document rollback validation steps
@@ -624,7 +624,7 @@ This task list implements a CD pipeline for the Kiro CodeBuild Worker project. T
   - Include example commands for manual rollback
   - **Validates**: NFR-4, US-5
 
-- [ ] 21.3 Create operations documentation `docs/operations/cd-pipeline-monitoring.md` and `docs/operations/cd-pipeline-runbook.md`
+- [x] 21.3 Create operations documentation `docs/operations/cd-pipeline-monitoring.md` and `docs/operations/cd-pipeline-runbook.md`
   - Document CloudWatch dashboard usage (metrics, widgets, interpretation)
   - Document alarm configuration (thresholds, actions, tuning)
   - Document common operational tasks (trigger deployment, approve production, check status)

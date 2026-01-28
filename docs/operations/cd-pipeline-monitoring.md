@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document provides comprehensive guidance on monitoring the Kiro CodeBuild Worker CD pipeline. It covers CloudWatch dashboard usage, alarm configuration, metrics interpretation, and monitoring best practices.
+This document provides comprehensive guidance on monitoring the Kiro CodeBuild Worker CD Pipeline. It covers CloudWatch dashboards, metrics, alarms, and how to interpret monitoring data to ensure healthy pipeline operations.
 
 ## Table of Contents
 
@@ -11,162 +11,183 @@ This document provides comprehensive guidance on monitoring the Kiro CodeBuild W
 3. [Alarms Configuration](#alarms-configuration)
 4. [Log Analysis](#log-analysis)
 5. [Performance Monitoring](#performance-monitoring)
-6. [Troubleshooting](#troubleshooting)
+6. [Troubleshooting Monitoring Issues](#troubleshooting-monitoring-issues)
 
 ## CloudWatch Dashboard
 
 ### Accessing the Dashboard
 
-**Dashboard Name**: `kiro-pipeline-{environment}-dashboard`
+The CD Pipeline CloudWatch dashboard provides real-time visibility into pipeline health and performance.
 
-**Access Methods**:
+**Dashboard Location**:
+- **Test Environment**: `kiro-pipeline-test-dashboard`
+- **Staging Environment**: `kiro-pipeline-staging-dashboard`
+- **Production Environment**: `kiro-pipeline-production-dashboard`
 
-1. **AWS Console**:
-   ```
-   AWS Console → CloudWatch → Dashboards → kiro-pipeline-{environment}-dashboard
-   ```
+**Access via AWS Console**:
+```
+1. Navigate to CloudWatch Console
+2. Select "Dashboards" from left menu
+3. Click on "kiro-pipeline-{environment}-dashboard"
+```
 
-2. **AWS CLI**:
-   ```bash
-   aws cloudwatch get-dashboard \
-     --dashboard-name kiro-pipeline-test-dashboard \
-     --region us-east-1
-   ```
+**Access via AWS CLI**:
+```bash
+# View dashboard
+aws cloudwatch get-dashboard \
+  --dashboard-name kiro-pipeline-production-dashboard \
+  --region us-east-1
 
-3. **Direct URL**:
-   ```
-   https://console.aws.amazon.com/cloudwatch/home?region=us-east-1#dashboards:name=kiro-pipeline-test-dashboard
-   ```
+# List all pipeline dashboards
+aws cloudwatch list-dashboards \
+  --region us-east-1 | grep kiro-pipeline
+```
 
 ### Dashboard Widgets
 
-The dashboard contains four primary widget sections:
+The dashboard contains the following widgets organized by category:
 
-#### 1. Pipeline Executions Widget
+#### 1. Pipeline Execution Metrics
 
-**Purpose**: Track pipeline execution success and failure rates
+**Widget: Pipeline Executions**
+- **Metrics Displayed**:
+  - Successful executions (green line)
+  - Failed executions (red line)
+- **Time Period**: 1 hour aggregation
+- **Interpretation**:
+  - **Normal**: Steady successful executions, minimal failures
+  - **Warning**: Occasional failures (< 10% failure rate)
+  - **Critical**: High failure rate (> 25%) or no successful executions
 
-**Metrics Displayed**:
-- Pipeline succeeded (green line)
-- Pipeline failed (red line)
+**Widget: Pipeline Success Rate**
+- **Metric**: Percentage of successful pipeline executions
+- **Time Period**: Rolling 24-hour window
+- **Interpretation**:
+  - **Healthy**: ≥ 95% success rate
+  - **Degraded**: 85-95% success rate
+  - **Unhealthy**: < 85% success rate
 
-**Time Period**: 1 hour aggregation
-**Statistic**: Sum
+#### 2. Deployment Duration Metrics
 
-**Interpretation**:
-- **Normal**: Steady green line with occasional spikes, minimal red line
-- **Warning**: Red line showing 1-2 failures per hour
-- **Critical**: Red line showing 3+ failures per hour (triggers alarm)
+**Widget: Deployment Duration**
+- **Metrics Displayed**:
+  - Average deployment duration (blue line)
+  - P50, P90, P99 percentiles (dotted lines)
+- **Time Period**: 1 hour aggregation
+- **Interpretation**:
+  - **Normal**: < 60 minutes average
+  - **Slow**: 60-90 minutes average
+  - **Critical**: > 90 minutes average
+- **Action Required**:
+  - If consistently > 60 minutes, investigate build caching, test optimization, or infrastructure sizing
 
-**Actions**:
-- **Normal**: No action required
-- **Warning**: Review recent failures in pipeline execution history
-- **Critical**: Investigate immediately using runbook procedures
+**Widget: Stage Duration Breakdown**
+- **Metrics Displayed**:
+  - Source stage duration
+  - Build stage duration
+  - Test environment stage duration
+  - Staging environment stage duration
+  - Production stage duration
+- **Interpretation**:
+  - Identify which stage is causing delays
+  - **Build Stage**: Should be < 10 minutes
+  - **Test Environment**: Should be < 15 minutes
+  - **Staging Environment**: Should be < 20 minutes
+  - **Production**: Should be < 15 minutes
 
-#### 2. Deployment Duration Widget
+#### 3. Rollback Metrics
 
-**Purpose**: Monitor deployment performance and identify slowdowns
+**Widget: Rollback Count**
+- **Metrics Displayed**:
+  - Stage-level rollbacks (yellow bars)
+  - Full rollbacks (red bars)
+- **Time Period**: 1 hour aggregation
+- **Interpretation**:
+  - **Normal**: 0-1 rollbacks per day
+  - **Warning**: 2-3 rollbacks per day
+  - **Critical**: > 3 rollbacks per day
+- **Action Required**:
+  - Investigate root cause of frequent rollbacks
+  - Review test quality and coverage
+  - Check for infrastructure instability
 
-**Metrics Displayed**:
-- Average deployment duration (blue line)
+**Widget: Rollback Success Rate**
+- **Metric**: Percentage of successful rollback operations
+- **Time Period**: Rolling 7-day window
+- **Interpretation**:
+  - **Healthy**: 100% success rate
+  - **Warning**: 95-99% success rate
+  - **Critical**: < 95% success rate (requires immediate attention)
 
-**Time Period**: 1 hour aggregation
-**Statistic**: Average
-**Unit**: Seconds
+#### 4. Test Results Metrics
 
-**Interpretation**:
-- **Normal**: 1800-3000 seconds (30-50 minutes)
-- **Warning**: 3000-3600 seconds (50-60 minutes)
-- **Critical**: >3600 seconds (>60 minutes, triggers alarm)
+**Widget: Test Success Rate**
+- **Metrics Displayed**:
+  - Unit test success rate
+  - Integration test success rate
+  - E2E test success rate
+- **Time Period**: Per deployment
+- **Interpretation**:
+  - **Healthy**: 100% success rate for all test types
+  - **Warning**: 95-99% success rate
+  - **Critical**: < 95% success rate
 
-**Common Causes of Slowdowns**:
-- Large number of tests running
-- Network latency to AWS services
-- CodeBuild resource contention
-- Large artifact uploads to S3
+**Widget: Code Coverage**
+- **Metric**: Code coverage percentage
+- **Time Period**: Per deployment
+- **Interpretation**:
+  - **Passing**: ≥ 80% coverage (deployment allowed)
+  - **Failing**: < 80% coverage (deployment blocked)
+- **Threshold**: 80% minimum (enforced by pipeline)
 
-**Actions**:
-- Review CodeBuild execution logs for bottlenecks
-- Check test execution times
-- Verify S3 upload performance
-- Consider increasing CodeBuild compute size
+#### 5. Security Scan Metrics
 
-#### 3. Rollbacks Widget
+**Widget: Security Vulnerabilities**
+- **Metrics Displayed**:
+  - CRITICAL severity count (red)
+  - HIGH severity count (orange)
+  - MEDIUM severity count (yellow)
+  - LOW severity count (green)
+- **Interpretation**:
+  - **Blocking**: Any CRITICAL or HIGH severity issues block deployment
+  - **Warning**: MEDIUM severity issues generate warnings
+  - **Informational**: LOW severity issues logged only
 
-**Purpose**: Track rollback frequency and identify stability issues
+#### 6. Health Check Metrics
 
-**Metrics Displayed**:
-- Rollback count (orange line)
-
-**Time Period**: 1 hour aggregation
-**Statistic**: Sum
-**Unit**: Count
-
-**Interpretation**:
-- **Normal**: 0 rollbacks per hour
-- **Warning**: 1 rollback per hour
-- **Critical**: 2+ rollbacks per hour (triggers alarm)
-
-**Rollback Dimensions**:
-- Environment (test, staging, production)
-- Level (stage, full)
-
-**Actions**:
-- **1 rollback**: Review rollback reason in DynamoDB deployment record
-- **2+ rollbacks**: Investigate root cause immediately, consider pausing deployments
-- Check alarm history for trigger events
-- Review recent code changes
-
-#### 4. Test Success Rate Widget
-
-**Purpose**: Monitor test quality and identify flaky tests
-
-**Metrics Displayed**:
-- Test success rate percentage (green line)
-
-**Time Period**: 1 hour aggregation
-**Statistic**: Average
-**Unit**: Percent
-
-**Interpretation**:
-- **Normal**: 95-100% success rate
-- **Warning**: 90-95% success rate
-- **Critical**: <90% success rate
-
-**Actions**:
-- Review test failure logs in CodeBuild
-- Identify flaky tests
-- Check for environmental issues
-- Review recent test changes
-
+**Widget: Post-Deployment Health Checks**
+- **Metrics Displayed**:
+  - Health check success rate per environment
+  - Failed alarm count during health checks
+- **Time Period**: Per deployment
+- **Interpretation**:
+  - **Healthy**: 100% health check success
+  - **Degraded**: Health checks pass but with warnings
+  - **Failed**: Health checks fail, triggering rollback
 
 ## Metrics and Interpretation
 
 ### Custom Metrics Namespace
 
-**Namespace**: `KiroPipeline`
+All CD Pipeline custom metrics are published to the `KiroPipeline` namespace.
 
-All custom metrics are published to this namespace for easy filtering and querying.
+**Available Metrics**:
 
-### Available Metrics
+| Metric Name | Unit | Dimensions | Description |
+|-------------|------|------------|-------------|
+| `DeploymentDuration` | Seconds | Environment | Total time from pipeline start to completion |
+| `RollbackCount` | Count | Environment, Level | Number of rollbacks (stage or full) |
+| `TestSuccessRate` | Percent | TestType | Percentage of passing tests |
+| `CoveragePercentage` | Percent | - | Code coverage percentage |
+| `SecurityViolations` | Count | Severity | Number of security issues by severity |
+| `HealthCheckFailures` | Count | Environment | Number of failed health checks |
 
-#### DeploymentDuration
+### Querying Metrics
 
-**Description**: Time taken for complete deployment (all stages)
+**Using AWS CLI**:
 
-**Dimensions**:
-- `Environment`: test | staging | production
-
-**Unit**: Seconds
-
-**Typical Values**:
-- Test environment: 900-1200 seconds (15-20 minutes)
-- Staging environment: 1200-1500 seconds (20-25 minutes)
-- Production environment: 900-1200 seconds (15-20 minutes)
-- Total pipeline: 1800-3600 seconds (30-60 minutes)
-
-**Query Example**:
 ```bash
+# Get deployment duration for production
 aws cloudwatch get-metric-statistics \
   --namespace KiroPipeline \
   --metric-name DeploymentDuration \
@@ -174,798 +195,517 @@ aws cloudwatch get-metric-statistics \
   --start-time 2026-01-27T00:00:00Z \
   --end-time 2026-01-27T23:59:59Z \
   --period 3600 \
-  --statistics Average,Maximum,Minimum
-```
+  --statistics Average,Maximum,Minimum \
+  --region us-east-1
 
-**Alerting Thresholds**:
-- Warning: >3000 seconds (50 minutes)
-- Critical: >3600 seconds (60 minutes)
-
-#### RollbackCount
-
-**Description**: Number of rollbacks executed
-
-**Dimensions**:
-- `Environment`: test | staging | production
-- `Level`: stage | full
-
-**Unit**: Count
-
-**Typical Values**:
-- Normal: 0 per hour
-- Concerning: 1-2 per day
-- Critical: 2+ per hour
-
-**Query Example**:
-```bash
+# Get rollback count
 aws cloudwatch get-metric-statistics \
   --namespace KiroPipeline \
   --metric-name RollbackCount \
-  --dimensions Name=Environment,Value=production Name=Level,Value=stage \
+  --dimensions Name=Environment,Value=production \
   --start-time 2026-01-27T00:00:00Z \
   --end-time 2026-01-27T23:59:59Z \
   --period 3600 \
-  --statistics Sum
+  --statistics Sum \
+  --region us-east-1
 ```
 
-**Alerting Thresholds**:
-- Warning: 1 per hour
-- Critical: 2+ per hour
+**Using CloudWatch Insights**:
 
-#### TestSuccessRate
+```sql
+-- Query deployment durations over time
+SELECT 
+  AVG(DeploymentDuration) as avg_duration,
+  MAX(DeploymentDuration) as max_duration,
+  MIN(DeploymentDuration) as min_duration
+FROM SCHEMA("KiroPipeline", DeploymentDuration)
+WHERE Environment = 'production'
+GROUP BY bin(5m)
 
-**Description**: Percentage of tests that passed
-
-**Dimensions**: None
-
-**Unit**: Percent
-
-**Typical Values**:
-- Excellent: 98-100%
-- Good: 95-98%
-- Concerning: 90-95%
-- Critical: <90%
-
-**Query Example**:
-```bash
-aws cloudwatch get-metric-statistics \
-  --namespace KiroPipeline \
-  --metric-name TestSuccessRate \
-  --start-time 2026-01-27T00:00:00Z \
-  --end-time 2026-01-27T23:59:59Z \
-  --period 3600 \
-  --statistics Average,Minimum
+-- Query rollback frequency
+SELECT 
+  COUNT(*) as rollback_count,
+  Level
+FROM SCHEMA("KiroPipeline", RollbackCount)
+WHERE Environment = 'production'
+GROUP BY Level
 ```
 
-**Alerting Thresholds**:
-- Warning: <95%
-- Critical: <90%
+### Metric Interpretation Guidelines
 
+#### Deployment Duration
 
-### AWS Native Pipeline Metrics
+**Baseline Performance**:
+- **Test Environment**: 15-20 minutes
+- **Staging Environment**: 20-25 minutes
+- **Production Environment**: 25-30 minutes
+- **Total Pipeline**: 50-60 minutes
 
-#### Pipeline Succeeded/Failed
+**Performance Degradation Indicators**:
+- **Gradual Increase**: May indicate growing test suite, increasing dependencies, or infrastructure degradation
+- **Sudden Spike**: May indicate infrastructure issues, network problems, or test failures
+- **Consistent Slowness**: May indicate need for optimization (caching, parallelization, resource sizing)
 
-**Source**: AWS CodePipeline native metrics
+**Action Items**:
+1. Review build logs for slow stages
+2. Check CodeBuild compute size (consider upgrading from SMALL to MEDIUM)
+3. Verify caching is working (node_modules, Docker layers)
+4. Optimize test execution (parallel test runs)
+5. Review dependency installation time
 
-**Metric Names**:
-- `PipelineExecutionSuccess`
-- `PipelineExecutionFailure`
+#### Rollback Frequency
 
-**Dimensions**:
-- `PipelineName`: kiro-pipeline-{environment}
+**Acceptable Rollback Rate**:
+- **Normal**: 0-2 rollbacks per week
+- **Elevated**: 3-5 rollbacks per week
+- **Critical**: > 5 rollbacks per week
 
-**Query Example**:
-```bash
-aws cloudwatch get-metric-statistics \
-  --namespace AWS/CodePipeline \
-  --metric-name PipelineExecutionFailure \
-  --dimensions Name=PipelineName,Value=kiro-pipeline-test \
-  --start-time 2026-01-27T00:00:00Z \
-  --end-time 2026-01-27T23:59:59Z \
-  --period 3600 \
-  --statistics Sum
-```
+**Common Rollback Causes**:
+1. **Test Failures**: Indicates insufficient pre-commit testing or flaky tests
+2. **Alarm Triggers**: Indicates application issues or overly sensitive alarms
+3. **Deployment Failures**: Indicates infrastructure issues or configuration problems
+4. **Health Check Failures**: Indicates application startup issues or dependency problems
+
+**Action Items**:
+1. Review rollback logs in CloudWatch
+2. Identify patterns in rollback causes
+3. Improve test coverage and quality
+4. Tune alarm thresholds if false positives
+5. Fix underlying application issues
+
+#### Test Success Rate
+
+**Target Success Rate**: 100%
+
+**Degraded Success Rate Causes**:
+- **Flaky Tests**: Tests that pass/fail intermittently
+- **Environment Issues**: Test environment instability
+- **Timing Issues**: Race conditions or timeout problems
+- **Dependency Issues**: External service unavailability
+
+**Action Items**:
+1. Identify flaky tests and fix or quarantine
+2. Increase test timeouts if timing-related
+3. Mock external dependencies
+4. Improve test isolation
 
 ## Alarms Configuration
 
-### Overview
+### Pipeline Alarms
 
-The CD pipeline uses CloudWatch alarms to detect issues and trigger automated responses. All alarms are configured with SNS notifications.
-
-### Alarm List
+The CD Pipeline has the following CloudWatch alarms configured:
 
 #### 1. Pipeline Failure Alarm
 
 **Alarm Name**: `kiro-pipeline-{environment}-failures`
 
-**Purpose**: Detect high failure rate in pipeline executions
-
-**Metric**: `AWS/CodePipeline` → `PipelineExecutionFailure`
-
 **Configuration**:
-- **Threshold**: 3 failures
+- **Metric**: Pipeline failed executions
+- **Threshold**: 3 failures in 1 hour
 - **Evaluation Period**: 1 period
-- **Period**: 1 hour (3600 seconds)
 - **Statistic**: Sum
-- **Comparison**: GreaterThanThreshold
-- **Treat Missing Data**: NotBreaching
+- **Comparison**: Greater than threshold
+- **Actions**: Send notification to SNS topic
 
-**Actions**:
-- Send notification to deployment SNS topic
-- Alert on-call engineer
+**Interpretation**:
+- **OK**: Fewer than 3 failures in the last hour
+- **ALARM**: 3 or more failures in the last hour
+
+**Response Actions**:
+1. Check CloudWatch logs for error messages
+2. Review recent commits for breaking changes
+3. Verify infrastructure health
+4. Check for external dependency issues
+5. Review test failures in CodeBuild console
 
 **Tuning Guidance**:
-- **Increase threshold** (e.g., to 5) if experiencing frequent false positives
-- **Decrease period** (e.g., to 30 minutes) for faster detection
-- **Never disable** - this is a critical alarm
-
-**Testing**:
-```bash
-# Manually trigger alarm for testing
-aws cloudwatch set-alarm-state \
-  --alarm-name kiro-pipeline-test-failures \
-  --state-value ALARM \
-  --state-reason "Testing alarm notification"
-```
+- **Too Sensitive**: Increase threshold to 5 failures
+- **Not Sensitive Enough**: Decrease threshold to 2 failures or reduce time window to 30 minutes
 
 #### 2. Rollback Alarm
 
 **Alarm Name**: `kiro-pipeline-{environment}-rollbacks`
 
-**Purpose**: Detect excessive rollback activity indicating instability
-
-**Metric**: `KiroPipeline` → `RollbackCount`
-
 **Configuration**:
-- **Threshold**: 2 rollbacks
+- **Metric**: Rollback count
+- **Threshold**: 2 rollbacks in 1 hour
 - **Evaluation Period**: 1 period
-- **Period**: 1 hour (3600 seconds)
 - **Statistic**: Sum
-- **Comparison**: GreaterThanThreshold
-- **Treat Missing Data**: NotBreaching
+- **Comparison**: Greater than threshold
+- **Actions**: Send notification to SNS topic
 
-**Actions**:
-- Send notification to rollback SNS topic
-- Alert on-call engineer
-- Consider pausing deployments
+**Interpretation**:
+- **OK**: Fewer than 2 rollbacks in the last hour
+- **ALARM**: 2 or more rollbacks in the last hour
+
+**Response Actions**:
+1. Review rollback reasons in DynamoDB deployments table
+2. Check for recurring issues
+3. Investigate application stability
+4. Review alarm configurations for false positives
+5. Check for infrastructure problems
 
 **Tuning Guidance**:
-- **Increase threshold** (e.g., to 3) if rollbacks are expected during testing
-- **Add dimensions** to filter by environment or rollback level
-- Monitor for patterns (e.g., always in production)
-
-**Testing**:
-```bash
-aws cloudwatch set-alarm-state \
-  --alarm-name kiro-pipeline-test-rollbacks \
-  --state-value ALARM \
-  --state-reason "Testing rollback alarm"
-```
-
+- **Too Sensitive**: Increase threshold to 3 rollbacks
+- **Not Sensitive Enough**: Decrease threshold to 1 rollback
 
 #### 3. Deployment Duration Alarm
 
 **Alarm Name**: `kiro-pipeline-{environment}-duration`
 
-**Purpose**: Detect slow deployments that may indicate performance issues
-
-**Metric**: `KiroPipeline` → `DeploymentDuration`
-
 **Configuration**:
-- **Threshold**: 3600 seconds (60 minutes)
+- **Metric**: Deployment duration
+- **Threshold**: 60 minutes
 - **Evaluation Period**: 1 period
-- **Period**: 5 minutes (300 seconds)
 - **Statistic**: Average
-- **Comparison**: GreaterThanThreshold
-- **Treat Missing Data**: NotBreaching
+- **Comparison**: Greater than threshold
+- **Actions**: Send notification to SNS topic
 
-**Actions**:
-- Send notification to deployment SNS topic
-- Investigate performance bottlenecks
+**Interpretation**:
+- **OK**: Average deployment duration < 60 minutes
+- **ALARM**: Average deployment duration > 60 minutes
+
+**Response Actions**:
+1. Identify slow pipeline stages
+2. Review build logs for bottlenecks
+3. Check CodeBuild resource utilization
+4. Verify caching is working
+5. Consider infrastructure upgrades
 
 **Tuning Guidance**:
-- **Increase threshold** (e.g., to 4500 seconds / 75 minutes) if deployments are legitimately slow
-- **Add environment-specific thresholds** (production may be faster than staging)
-- Review and optimize slow stages
+- **Too Sensitive**: Increase threshold to 75 minutes
+- **Not Sensitive Enough**: Decrease threshold to 45 minutes
 
-**Testing**:
+### Alarm Actions
+
+All alarms are configured to send notifications to SNS topics:
+
+**SNS Topics**:
+- **Deployment Notifications**: `kiro-pipeline-{environment}-deployments`
+- **Approval Requests**: `kiro-pipeline-{environment}-approvals`
+- **Rollback Notifications**: `kiro-pipeline-{environment}-rollbacks`
+
+**Notification Channels**:
+- Email subscriptions (configured per environment)
+- Slack integration (via Lambda function)
+- PagerDuty integration (production only)
+
+### Managing Alarm Subscriptions
+
+**Add Email Subscription**:
 ```bash
-aws cloudwatch set-alarm-state \
-  --alarm-name kiro-pipeline-test-duration \
-  --state-value ALARM \
-  --state-reason "Testing duration alarm"
+aws sns subscribe \
+  --topic-arn arn:aws:sns:us-east-1:123456789012:kiro-pipeline-production-deployments \
+  --protocol email \
+  --notification-endpoint devops-team@example.com \
+  --region us-east-1
 ```
 
-### Alarm States
-
-**OK**: Metric is within normal range
-- **Action**: No action required
-- **Color**: Green
-
-**ALARM**: Metric has breached threshold
-- **Action**: Immediate investigation required
-- **Color**: Red
-- **Triggers**: SNS notifications, automated rollback (for deployment alarms)
-
-**INSUFFICIENT_DATA**: Not enough data to evaluate
-- **Action**: Verify metric is being published
-- **Color**: Gray
-- **Common Causes**: New alarm, no recent deployments, metric publishing failure
-
-### SNS Topics
-
-#### Deployment Topic
-
-**Topic Name**: `kiro-pipeline-{environment}-deployments`
-
-**Subscriptions**:
-- Email: devops-team@example.com
-- Slack: (via Lambda integration)
-
-**Events**:
-- Deployment started
-- Deployment succeeded
-- Deployment failed
-- Pipeline failure alarm
-
-#### Approval Topic
-
-**Topic Name**: `kiro-pipeline-{environment}-approvals`
-
-**Subscriptions**:
-- Email: engineering-managers@example.com
-
-**Events**:
-- Production approval required
-- Approval timeout warning
-
-#### Rollback Topic
-
-**Topic Name**: `kiro-pipeline-{environment}-rollbacks`
-
-**Subscriptions**:
-- Email: devops-team@example.com, on-call@example.com
-- PagerDuty: (via integration)
-
-**Events**:
-- Rollback initiated
-- Rollback succeeded
-- Rollback failed
-- Rollback alarm
-
-### Modifying Alarm Thresholds
-
-**Via AWS Console**:
-1. Navigate to CloudWatch → Alarms
-2. Select the alarm to modify
-3. Click "Edit"
-4. Update threshold value
-5. Click "Update alarm"
-
-**Via AWS CLI**:
+**Remove Subscription**:
 ```bash
-aws cloudwatch put-metric-alarm \
-  --alarm-name kiro-pipeline-test-failures \
-  --alarm-description "Pipeline failure rate alarm" \
-  --metric-name PipelineExecutionFailure \
-  --namespace AWS/CodePipeline \
-  --statistic Sum \
-  --period 3600 \
-  --evaluation-periods 1 \
-  --threshold 5 \
-  --comparison-operator GreaterThanThreshold \
-  --dimensions Name=PipelineName,Value=kiro-pipeline-test
+# List subscriptions
+aws sns list-subscriptions-by-topic \
+  --topic-arn arn:aws:sns:us-east-1:123456789012:kiro-pipeline-production-deployments \
+  --region us-east-1
+
+# Unsubscribe
+aws sns unsubscribe \
+  --subscription-arn arn:aws:sns:us-east-1:123456789012:kiro-pipeline-production-deployments:abc123 \
+  --region us-east-1
 ```
 
-**Via CDK** (recommended for permanent changes):
-```typescript
-// infrastructure/lib/stacks/monitoring-alerting-stack.ts
-const pipelineFailureAlarm = new cloudwatch.Alarm(this, 'PipelineFailureAlarm', {
-  alarmName: `kiro-pipeline-${environment}-failures`,
-  metric: pipeline.metricFailed({
-    statistic: 'Sum',
-    period: Duration.hours(1)
-  }),
-  threshold: 5,  // Changed from 3 to 5
-  evaluationPeriods: 1
-});
-```
+### Alarm Tuning Best Practices
 
+1. **Start Conservative**: Begin with higher thresholds and tighten as you understand normal behavior
+2. **Monitor False Positives**: Track alarm frequency and adjust if too many false alarms
+3. **Environment-Specific Tuning**: Production may need tighter thresholds than test/staging
+4. **Seasonal Adjustments**: Consider deployment patterns (e.g., fewer deployments on weekends)
+5. **Document Changes**: Record threshold changes and rationale in runbook
 
 ## Log Analysis
 
 ### Log Groups
 
-#### Pipeline Log Group
+The CD Pipeline writes logs to the following CloudWatch log groups:
 
-**Log Group Name**: `/aws/codepipeline/kiro-pipeline-{environment}`
+| Log Group | Purpose | Retention |
+|-----------|---------|-----------|
+| `/aws/codepipeline/kiro-pipeline-{env}` | Pipeline execution logs | 90 days |
+| `/aws/codebuild/kiro-pipeline-{env}-build` | Build stage logs | 90 days |
+| `/aws/codebuild/kiro-pipeline-{env}-integration-test` | Integration test logs | 90 days |
+| `/aws/codebuild/kiro-pipeline-{env}-e2e-test` | E2E test logs | 90 days |
+| `/aws/codebuild/kiro-pipeline-{env}-deploy-test` | Test deployment logs | 90 days |
+| `/aws/codebuild/kiro-pipeline-{env}-deploy-staging` | Staging deployment logs | 90 days |
+| `/aws/codebuild/kiro-pipeline-{env}-deploy-production` | Production deployment logs | 90 days |
+| `/aws/lambda/kiro-pipeline-{env}-rollback` | Rollback Lambda logs | 90 days |
 
-**Retention**: 90 days
+### Searching Logs
 
-**Contents**:
-- Pipeline execution events
-- Stage transitions
-- Action executions
-- Approval requests
-
-**Accessing Logs**:
-```bash
-# View recent logs
-aws logs tail /aws/codepipeline/kiro-pipeline-test --follow
-
-# Query logs
-aws logs filter-log-events \
-  --log-group-name /aws/codepipeline/kiro-pipeline-test \
-  --start-time $(date -u -d '1 hour ago' +%s)000 \
-  --filter-pattern "ERROR"
-```
-
-#### Rollback Lambda Log Group
-
-**Log Group Name**: `/aws/lambda/kiro-pipeline-{environment}-rollback`
-
-**Retention**: 90 days
-
-**Contents**:
-- Rollback initiation events
-- Alarm processing
-- Rollback execution steps
-- Validation results
-
-**Accessing Logs**:
-```bash
-# View recent rollback logs
-aws logs tail /aws/lambda/kiro-pipeline-test-rollback --follow
-
-# Query for rollback failures
-aws logs filter-log-events \
-  --log-group-name /aws/lambda/kiro-pipeline-test-rollback \
-  --filter-pattern "{ $.level = \"ERROR\" }"
-```
-
-#### CodeBuild Log Groups
-
-**Log Group Names**:
-- `/aws/codebuild/kiro-pipeline-{environment}-build`
-- `/aws/codebuild/kiro-pipeline-{environment}-integration-test`
-- `/aws/codebuild/kiro-pipeline-{environment}-e2e-test`
-- `/aws/codebuild/kiro-pipeline-{environment}-deploy-test`
-- `/aws/codebuild/kiro-pipeline-{environment}-deploy-staging`
-- `/aws/codebuild/kiro-pipeline-{environment}-deploy-production`
-
-**Retention**: 90 days
-
-**Contents**:
-- Build output
-- Test results
-- Deployment logs
-- Error messages
-
-**Accessing Logs**:
-```bash
-# View build logs
-aws logs tail /aws/codebuild/kiro-pipeline-test-build --follow
-
-# Query for test failures
-aws logs filter-log-events \
-  --log-group-name /aws/codebuild/kiro-pipeline-test-integration-test \
-  --filter-pattern "FAIL"
-```
-
-### Log Insights Queries
-
-#### Pipeline Execution Duration
+**Using CloudWatch Logs Insights**:
 
 ```sql
+-- Find all pipeline failures in last 24 hours
 fields @timestamp, @message
-| filter @message like /Pipeline execution completed/
+| filter @message like /ERROR/ or @message like /FAILED/
+| sort @timestamp desc
+| limit 100
+
+-- Find deployment durations
+fields @timestamp, deploymentId, duration
+| filter @message like /Deployment completed/
 | parse @message "duration: * seconds" as duration
-| stats avg(duration), max(duration), min(duration) by bin(5m)
-```
+| stats avg(duration), max(duration), min(duration) by bin(1h)
 
-#### Rollback Frequency
-
-```sql
-fields @timestamp, @message
+-- Find rollback events
+fields @timestamp, environment, reason
 | filter @message like /Rollback initiated/
-| parse @message "environment: *, reason: *" as env, reason
-| stats count() by env, reason
-```
+| parse @message "environment: *, reason: *" as environment, reason
+| sort @timestamp desc
 
-#### Test Failure Analysis
-
-```sql
-fields @timestamp, @message
+-- Find test failures
+fields @timestamp, testName, error
 | filter @message like /Test failed/
-| parse @message "test: *, error: *" as test, error
-| stats count() by test
+| parse @message "test: *, error: *" as testName, error
+| stats count() by testName
 | sort count desc
 ```
 
-#### Deployment Errors
+**Using AWS CLI**:
 
-```sql
-fields @timestamp, @message
-| filter level = "ERROR"
-| filter @message like /deployment/
-| stats count() by bin(1h)
+```bash
+# Tail pipeline logs
+aws logs tail /aws/codepipeline/kiro-pipeline-production \
+  --follow \
+  --region us-east-1
+
+# Search for errors
+aws logs filter-log-events \
+  --log-group-name /aws/codepipeline/kiro-pipeline-production \
+  --filter-pattern "ERROR" \
+  --start-time $(date -u -d '1 hour ago' +%s)000 \
+  --region us-east-1
+
+# Get specific log stream
+aws logs get-log-events \
+  --log-group-name /aws/codepipeline/kiro-pipeline-production \
+  --log-stream-name 2026/01/27/execution-abc123 \
+  --region us-east-1
 ```
 
+### Log Analysis Patterns
+
+#### Identifying Deployment Issues
+
+**Pattern**: Deployment failures
+```sql
+fields @timestamp, stage, error
+| filter @message like /Stage failed/
+| parse @message "stage: *, error: *" as stage, error
+| stats count() by stage, error
+```
+
+**Common Errors**:
+- `CDK deployment failed`: Infrastructure deployment issue
+- `Test execution failed`: Test failures blocking deployment
+- `Health check failed`: Application not healthy after deployment
+- `Timeout exceeded`: Stage took too long to complete
+
+#### Identifying Rollback Issues
+
+**Pattern**: Rollback failures
+```sql
+fields @timestamp, deploymentId, reason, level
+| filter @message like /Rollback failed/
+| parse @message "deployment: *, reason: *, level: *" as deploymentId, reason, level
+| sort @timestamp desc
+```
+
+**Common Errors**:
+- `Previous version not found`: Rollback target missing
+- `CDK rollback failed`: Infrastructure rollback issue
+- `Validation failed`: Rollback completed but validation failed
 
 ## Performance Monitoring
 
 ### Key Performance Indicators (KPIs)
 
-#### Deployment Frequency
+Track these KPIs to ensure pipeline health:
 
-**Definition**: Number of successful deployments per day
+| KPI | Target | Warning | Critical |
+|-----|--------|---------|----------|
+| Pipeline Success Rate | ≥ 95% | 85-95% | < 85% |
+| Average Deployment Duration | < 60 min | 60-90 min | > 90 min |
+| Rollback Frequency | < 2/week | 2-5/week | > 5/week |
+| Rollback Success Rate | 100% | 95-99% | < 95% |
+| Test Success Rate | 100% | 95-99% | < 95% |
+| Code Coverage | ≥ 80% | 75-80% | < 75% |
+| Mean Time to Recovery (MTTR) | < 15 min | 15-30 min | > 30 min |
 
-**Target**: 3-5 deployments per day
+### Performance Trends
 
-**Measurement**:
+**Weekly Performance Report**:
+
 ```bash
-aws dynamodb query \
-  --table-name kiro-pipeline-test-deployments \
-  --index-name EnvironmentStatusIndex \
-  --key-condition-expression "environment = :env AND #status = :status" \
-  --expression-attribute-names '{"#status":"status"}' \
-  --expression-attribute-values '{":env":{"S":"production"},":status":{"S":"succeeded"}}' \
-  --filter-expression "startTime > :yesterday" \
-  --expression-attribute-values '{":yesterday":{"N":"'$(date -u -d '1 day ago' +%s)'"}}' \
-  --select COUNT
-```
-
-#### Lead Time for Changes
-
-**Definition**: Time from commit to production deployment
-
-**Target**: < 2 hours
-
-**Measurement**: Check deployment duration metric + approval wait time
-
-#### Mean Time to Recovery (MTTR)
-
-**Definition**: Time from deployment failure to successful rollback
-
-**Target**: < 15 minutes
-
-**Measurement**: Check rollback duration in DynamoDB deployment records
-
-#### Change Failure Rate
-
-**Definition**: Percentage of deployments that require rollback
-
-**Target**: < 5%
-
-**Measurement**:
-```bash
-# Calculate from DynamoDB
-# Total deployments with status = 'rolled_back' / Total deployments
-```
-
-### Performance Baselines
-
-#### Stage Duration Baselines
-
-| Stage | Baseline | Warning | Critical |
-|-------|----------|---------|----------|
-| Source | 30 seconds | 60 seconds | 120 seconds |
-| Build | 10 minutes | 15 minutes | 20 minutes |
-| Test Environment | 15 minutes | 20 minutes | 25 minutes |
-| Staging Environment | 20 minutes | 25 minutes | 30 minutes |
-| Production Environment | 15 minutes | 20 minutes | 25 minutes |
-| **Total Pipeline** | **30-50 minutes** | **50-60 minutes** | **>60 minutes** |
-
-#### Resource Utilization
-
-**CodeBuild Compute**:
-- Type: SMALL (3 GB memory, 2 vCPUs)
-- Typical CPU: 40-60%
-- Typical Memory: 1.5-2 GB
-
-**Lambda (Rollback)**:
-- Memory: 512 MB
-- Typical Duration: 2-5 minutes
-- Typical Memory Used: 128-256 MB
-
-**DynamoDB**:
-- Billing Mode: PAY_PER_REQUEST
-- Typical Read Capacity: 5-10 RCU
-- Typical Write Capacity: 2-5 WCU
-
-### Performance Optimization
-
-#### Caching
-
-**Current Caching**:
-- Source cache: Enabled
-- Docker layer cache: Enabled
-- Custom cache: node_modules, infrastructure/node_modules, .npm
-
-**Verification**:
-```bash
-# Check cache hit rate in CodeBuild logs
-aws logs filter-log-events \
-  --log-group-name /aws/codebuild/kiro-pipeline-test-build \
-  --filter-pattern "cache hit"
-```
-
-**Optimization**:
-- Ensure cache paths are correct
-- Monitor cache size (should be < 5 GB)
-- Clear cache if corrupted
-
-#### Parallel Execution
-
-**Current Parallelization**:
-- Unit tests: Parallel (vitest --threads)
-- Security scans: Sequential (could be parallelized)
-
-**Future Optimization**:
-- Run cfn-lint and cfn-guard in parallel
-- Run npm audit concurrently with tests
-
-
-## Troubleshooting
-
-### Common Issues and Solutions
-
-#### Issue: Dashboard Not Showing Data
-
-**Symptoms**:
-- Widgets show "No data available"
-- Metrics not appearing
-
-**Diagnosis**:
-```bash
-# Check if metrics are being published
-aws cloudwatch list-metrics --namespace KiroPipeline
-
-# Check recent metric data points
+# Generate weekly report
 aws cloudwatch get-metric-statistics \
   --namespace KiroPipeline \
   --metric-name DeploymentDuration \
+  --dimensions Name=Environment,Value=production \
+  --start-time $(date -u -d '7 days ago' +%Y-%m-%dT%H:%M:%S) \
+  --end-time $(date -u +%Y-%m-%dT%H:%M:%S) \
+  --period 86400 \
+  --statistics Average,Maximum,Minimum \
+  --region us-east-1
+```
+
+**Monthly Trend Analysis**:
+1. Compare current month metrics to previous month
+2. Identify trends (improving, degrading, stable)
+3. Correlate with code changes and infrastructure updates
+4. Adjust thresholds and optimization priorities
+
+## Troubleshooting Monitoring Issues
+
+### Dashboard Not Loading
+
+**Symptoms**: Dashboard shows "No data" or fails to load
+
+**Possible Causes**:
+1. Metrics not being published
+2. IAM permissions issue
+3. Dashboard configuration error
+4. Region mismatch
+
+**Resolution Steps**:
+```bash
+# Verify metrics exist
+aws cloudwatch list-metrics \
+  --namespace KiroPipeline \
+  --region us-east-1
+
+# Check dashboard configuration
+aws cloudwatch get-dashboard \
+  --dashboard-name kiro-pipeline-production-dashboard \
+  --region us-east-1
+
+# Verify IAM permissions
+aws iam get-role-policy \
+  --role-name KiroPipelineRole \
+  --policy-name MetricsPolicy \
+  --region us-east-1
+```
+
+### Metrics Not Appearing
+
+**Symptoms**: Expected metrics not showing in dashboard or queries
+
+**Possible Causes**:
+1. Metric publishing code not executing
+2. IAM permissions missing
+3. Incorrect namespace or dimensions
+4. CloudWatch API throttling
+
+**Resolution Steps**:
+```bash
+# Check CodeBuild logs for metric publishing
+aws logs filter-log-events \
+  --log-group-name /aws/codebuild/kiro-pipeline-production-build \
+  --filter-pattern "PutMetricData" \
+  --region us-east-1
+
+# Verify IAM permissions
+aws iam simulate-principal-policy \
+  --policy-source-arn arn:aws:iam::123456789012:role/KiroPipelineRole \
+  --action-names cloudwatch:PutMetricData \
+  --region us-east-1
+
+# Check for throttling
+aws cloudwatch get-metric-statistics \
+  --namespace AWS/CloudWatch \
+  --metric-name ThrottledRequests \
   --start-time $(date -u -d '1 hour ago' +%Y-%m-%dT%H:%M:%S) \
   --end-time $(date -u +%Y-%m-%dT%H:%M:%S) \
   --period 300 \
-  --statistics Average
+  --statistics Sum \
+  --region us-east-1
 ```
 
-**Solutions**:
-1. Verify pipeline has executed recently
-2. Check CloudWatch permissions for metric publishing
-3. Verify metric namespace and names are correct
-4. Check for errors in CodeBuild logs
+### Alarms Not Triggering
 
-#### Issue: Alarms Stuck in INSUFFICIENT_DATA
+**Symptoms**: Alarms remain in OK state despite threshold breaches
 
-**Symptoms**:
-- Alarm shows gray "INSUFFICIENT_DATA" state
-- No alarm transitions
+**Possible Causes**:
+1. Alarm configuration error
+2. Insufficient data points
+3. Incorrect metric or dimensions
+4. SNS topic permissions issue
 
-**Diagnosis**:
+**Resolution Steps**:
 ```bash
 # Check alarm configuration
 aws cloudwatch describe-alarms \
-  --alarm-names kiro-pipeline-test-failures
+  --alarm-names kiro-pipeline-production-failures \
+  --region us-east-1
 
-# Check if metric has data
-aws cloudwatch get-metric-statistics \
-  --namespace AWS/CodePipeline \
-  --metric-name PipelineExecutionFailure \
-  --dimensions Name=PipelineName,Value=kiro-pipeline-test \
-  --start-time $(date -u -d '2 hours ago' +%Y-%m-%dT%H:%M:%S) \
-  --end-time $(date -u +%Y-%m-%dT%H:%M:%S) \
-  --period 3600 \
-  --statistics Sum
-```
-
-**Solutions**:
-1. Trigger a pipeline execution to generate data
-2. Verify alarm dimensions match metric dimensions
-3. Check alarm period matches metric publishing frequency
-4. Set "Treat Missing Data" to "notBreaching" if appropriate
-
-#### Issue: False Positive Alarms
-
-**Symptoms**:
-- Alarms triggering frequently
-- No actual issues found
-
-**Diagnosis**:
-1. Review alarm threshold settings
-2. Check metric values around alarm time
-3. Analyze alarm history
-
-```bash
-# Get alarm history
+# Check alarm history
 aws cloudwatch describe-alarm-history \
-  --alarm-name kiro-pipeline-test-failures \
-  --max-records 10
-```
+  --alarm-name kiro-pipeline-production-failures \
+  --history-item-type StateUpdate \
+  --start-date $(date -u -d '24 hours ago' +%Y-%m-%dT%H:%M:%S) \
+  --region us-east-1
 
-**Solutions**:
-1. Increase alarm threshold
-2. Increase evaluation periods
-3. Adjust statistic (e.g., use p99 instead of Average)
-4. Add composite alarms for more complex logic
-
-#### Issue: Missing Notifications
-
-**Symptoms**:
-- Alarms triggering but no emails/notifications received
-
-**Diagnosis**:
-```bash
-# Check SNS topic subscriptions
-aws sns list-subscriptions-by-topic \
-  --topic-arn arn:aws:sns:us-east-1:ACCOUNT:kiro-pipeline-test-deployments
-
-# Check SNS topic permissions
+# Verify SNS topic permissions
 aws sns get-topic-attributes \
-  --topic-arn arn:aws:sns:us-east-1:ACCOUNT:kiro-pipeline-test-deployments
+  --topic-arn arn:aws:sns:us-east-1:123456789012:kiro-pipeline-production-deployments \
+  --region us-east-1
+
+# Test alarm manually
+aws cloudwatch set-alarm-state \
+  --alarm-name kiro-pipeline-production-failures \
+  --state-value ALARM \
+  --state-reason "Manual test" \
+  --region us-east-1
 ```
 
-**Solutions**:
-1. Verify email subscriptions are confirmed
-2. Check spam folder for SNS emails
-3. Verify SNS topic has correct permissions
-4. Test notification manually:
-   ```bash
-   aws sns publish \
-     --topic-arn arn:aws:sns:us-east-1:ACCOUNT:kiro-pipeline-test-deployments \
-     --message "Test notification"
-   ```
+### Log Retention Issues
 
-#### Issue: High Rollback Rate
+**Symptoms**: Logs disappearing before expected retention period
 
-**Symptoms**:
-- Rollback alarm triggering frequently
-- Multiple rollbacks per day
+**Possible Causes**:
+1. Retention policy misconfigured
+2. Log group deleted and recreated
+3. Logs manually deleted
 
-**Diagnosis**:
-1. Query DynamoDB for rollback reasons
-2. Review recent code changes
-3. Check test failure patterns
-
+**Resolution Steps**:
 ```bash
-# Query recent rollbacks
-aws dynamodb query \
-  --table-name kiro-pipeline-test-deployments \
-  --index-name EnvironmentStatusIndex \
-  --key-condition-expression "environment = :env AND #status = :status" \
-  --expression-attribute-names '{"#status":"status"}' \
-  --expression-attribute-values '{":env":{"S":"production"},":status":{"S":"rolled_back"}}'
+# Check retention settings
+aws logs describe-log-groups \
+  --log-group-name-prefix /aws/codepipeline/kiro-pipeline \
+  --region us-east-1
+
+# Update retention if needed
+aws logs put-retention-policy \
+  --log-group-name /aws/codepipeline/kiro-pipeline-production \
+  --retention-in-days 90 \
+  --region us-east-1
 ```
 
-**Solutions**:
-1. Improve test coverage
-2. Add pre-deployment validation
-3. Review alarm thresholds (may be too sensitive)
-4. Implement canary deployments for gradual rollout
+## Best Practices
 
-
-### Monitoring Best Practices
-
-#### 1. Regular Dashboard Reviews
-
-**Frequency**: Daily (morning standup)
-
-**Checklist**:
-- [ ] Review pipeline execution trends
-- [ ] Check for any alarms in ALARM state
-- [ ] Verify deployment duration is within baseline
-- [ ] Check rollback count (should be 0)
-- [ ] Review test success rate (should be >95%)
-
-#### 2. Weekly Performance Analysis
-
-**Frequency**: Weekly (Monday morning)
-
-**Activities**:
-- Calculate KPIs (deployment frequency, lead time, MTTR, change failure rate)
-- Compare against targets
-- Identify performance trends
-- Review and adjust alarm thresholds if needed
-
-#### 3. Monthly Capacity Planning
-
-**Frequency**: Monthly (first week of month)
-
-**Activities**:
-- Review CodeBuild usage and costs
-- Analyze DynamoDB capacity utilization
-- Check S3 storage growth
-- Plan for capacity increases if needed
-
-#### 4. Alarm Hygiene
-
-**Frequency**: Quarterly
-
-**Activities**:
-- Review all alarms for relevance
-- Remove or update obsolete alarms
-- Verify SNS subscriptions are current
-- Test alarm notifications
-
-#### 5. Log Retention Review
-
-**Frequency**: Quarterly
-
-**Activities**:
-- Verify log retention policies (90 days)
-- Archive important logs if needed
-- Review log storage costs
-- Adjust retention if necessary
-
-### Monitoring Tools Integration
-
-#### Grafana Integration
-
-**Setup**:
-1. Install CloudWatch data source in Grafana
-2. Import dashboard template
-3. Configure refresh interval
-
-**Benefits**:
-- Unified monitoring across services
-- Custom visualizations
-- Advanced alerting
-
-#### Datadog Integration
-
-**Setup**:
-1. Install Datadog AWS integration
-2. Configure CloudWatch metrics collection
-3. Set up custom dashboards
-
-**Benefits**:
-- APM integration
-- Log aggregation
-- Advanced analytics
-
-#### PagerDuty Integration
-
-**Setup**:
-1. Create PagerDuty service
-2. Configure SNS to PagerDuty integration
-3. Set up escalation policies
-
-**Benefits**:
-- On-call rotation management
-- Incident tracking
-- Escalation workflows
-
-## Summary
-
-This monitoring guide provides comprehensive coverage of:
-
-✅ **CloudWatch Dashboard**: Access, widgets, and interpretation
-✅ **Metrics**: Custom and native metrics with query examples
-✅ **Alarms**: Configuration, thresholds, and tuning guidance
-✅ **Logs**: Log groups, queries, and analysis
-✅ **Performance**: KPIs, baselines, and optimization
-✅ **Troubleshooting**: Common issues and solutions
-✅ **Best Practices**: Regular reviews and maintenance
-
-For operational procedures and incident response, see the [CD Pipeline Runbook](./cd-pipeline-runbook.md).
+1. **Regular Review**: Review dashboard daily for production, weekly for test/staging
+2. **Trend Analysis**: Track metrics over time to identify degradation early
+3. **Alarm Tuning**: Continuously tune alarms to reduce false positives while maintaining sensitivity
+4. **Log Retention**: Ensure logs retained long enough for incident investigation (90 days minimum)
+5. **Documentation**: Document baseline performance and threshold rationale
+6. **Automation**: Automate metric collection and reporting where possible
+7. **Correlation**: Correlate pipeline metrics with application metrics for holistic view
+8. **Capacity Planning**: Use metrics to inform infrastructure sizing decisions
+9. **Incident Response**: Use monitoring data to drive incident response and post-mortems
+10. **Continuous Improvement**: Use metrics to identify optimization opportunities
 
 ## Related Documentation
 
-- [CD Pipeline Deployment Guide](../deployment/cd-pipeline-deployment.md)
-- [CD Pipeline Rollback Guide](../deployment/cd-pipeline-rollback.md)
-- [CD Pipeline Runbook](./cd-pipeline-runbook.md)
-
-## Support
-
-For questions or issues:
-- **Slack**: #devops-pipeline
-- **Email**: devops-team@example.com
-- **On-Call**: PagerDuty escalation
-
----
-
-**Last Updated**: 2026-01-27
-**Version**: 1.0.0
-**Maintained By**: DevOps Team
+- [CD Pipeline Runbook](./cd-pipeline-runbook.md) - Operational procedures and incident response
+- [CD Pipeline Deployment Guide](../deployment/cd-pipeline-deployment.md) - Deployment procedures
+- [CD Pipeline Rollback Guide](../deployment/cd-pipeline-rollback.md) - Rollback procedures
+- [AWS CloudWatch Documentation](https://docs.aws.amazon.com/cloudwatch/) - Official AWS documentation
