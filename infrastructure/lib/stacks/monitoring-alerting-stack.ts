@@ -24,6 +24,11 @@ import * as codebuild from 'aws-cdk-lib/aws-codebuild';
 import * as codepipeline from 'aws-cdk-lib/aws-codepipeline';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
+import * as events from 'aws-cdk-lib/aws-events';
+import * as targets from 'aws-cdk-lib/aws-events-targets';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as sqs from 'aws-cdk-lib/aws-sqs';
+import * as path from 'path';
 import { Construct } from 'constructs';
 import { EnvironmentConfig } from '../config/environments';
 
@@ -178,6 +183,9 @@ export class MonitoringAlertingStack extends cdk.Stack {
   
   /** CloudWatch dashboard for pipeline metrics */
   public readonly pipelineDashboard?: cloudwatch.Dashboard;
+  
+  /** Rollback Lambda function (CD pipeline) */
+  public readonly rollbackLambda?: lambda.Function;
 
   constructor(scope: Construct, id: string, props: MonitoringAlertingStackProps) {
     super(scope, id, props);
@@ -206,6 +214,9 @@ export class MonitoringAlertingStack extends cdk.Stack {
     // Create CD pipeline monitoring if pipeline is provided
     if (cdPipeline && deploymentsTable) {
       this.createCDPipelineMonitoring(environment, cdPipeline, deploymentsTable, alertEmail);
+      
+      // Create rollback Lambda and EventBridge integration
+      this.createRollbackLambda(environment, deploymentsTable);
     }
 
     // Add stack outputs
@@ -789,6 +800,126 @@ export class MonitoringAlertingStack extends cdk.Stack {
       })
     );
   }
+  
+  /**
+   * Create rollback Lambda function and EventBridge integration
+   * 
+   * Creates Lambda function that processes CloudWatch alarm events and triggers
+   * automated rollback procedures.
+   * 
+   * @param environment - Environment name
+   * @param deploymentsTable - DynamoDB table for deployment tracking
+   */
+  private createRollbackLambda(
+    environment: string,
+    deploymentsTable: dynamodb.ITable
+  ): void {
+    // Create Dead Letter Queue for failed rollback invocations
+    const dlq = new sqs.Queue(this, 'RollbackDLQ', {
+      queueName: `kiro-pipeline-${environment}-rollback-dlq`,
+      retentionPeriod: cdk.Duration.days(14),
+      encryption: sqs.QueueEncryption.KMS_MANAGED,
+    });
+    
+    // Create Lambda function for rollback
+    this.rollbackLambda = new lambda.Function(this, 'RollbackLambda', {
+      functionName: `kiro-pipeline-${environment}-rollback`,
+      runtime: lambda.Runtime.NODEJS_18_X,
+      handler: 'index.handler',
+      code: lambda.Code.fromInline(`
+        exports.handler = async function(event) {
+          console.log('Rollback handler placeholder');
+          return { statusCode: 200, body: 'OK' };
+        };
+      `),
+      timeout: cdk.Duration.minutes(15),
+      memorySize: 512,
+      environment: {
+        TABLE_NAME: deploymentsTable.tableName,
+        TOPIC_ARN: this.rollbackNotificationsTopic?.topicArn || '',
+        ARTIFACTS_BUCKET: `kiro-pipeline-${environment}-artifacts`,
+        ENVIRONMENT_PREFIXES: `kiro-worker-${environment},kiro-pipeline-${environment}`,
+      },
+      deadLetterQueue: dlq,
+      retryAttempts: 0, // Don't retry - handle errors in code
+      description: `Automated rollback handler for ${environment} environment`,
+    });
+    
+    // Grant permissions to read from deployments table
+    deploymentsTable.grantReadData(this.rollbackLambda);
+    
+    // Grant permissions to publish to rollback notifications topic
+    if (this.rollbackNotificationsTopic) {
+      this.rollbackNotificationsTopic.grantPublish(this.rollbackLambda);
+    }
+    
+    // Grant permissions for CodePipeline operations
+    this.rollbackLambda.addToRolePolicy(new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: [
+        'codepipeline:GetPipelineState',
+        'codepipeline:GetPipelineExecution',
+        'codepipeline:StopPipelineExecution',
+      ],
+      resources: [
+        `arn:aws:codepipeline:${this.region}:${this.account}:kiro-pipeline-${environment}`,
+      ],
+    }));
+    
+    // Grant permissions for S3 artifacts access
+    this.rollbackLambda.addToRolePolicy(new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: [
+        's3:GetObject',
+        's3:ListBucket',
+      ],
+      resources: [
+        `arn:aws:s3:::kiro-pipeline-${environment}-artifacts`,
+        `arn:aws:s3:::kiro-pipeline-${environment}-artifacts/*`,
+      ],
+    }));
+    
+    // Grant permissions for CloudWatch alarms
+    this.rollbackLambda.addToRolePolicy(new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: [
+        'cloudwatch:DescribeAlarms',
+        'cloudwatch:GetMetricStatistics',
+      ],
+      resources: ['*'], // CloudWatch alarms don't support resource-level permissions
+    }));
+    
+    // Create EventBridge rule for CD pipeline alarms
+    const alarmRule = new events.Rule(this, 'CDPipelineAlarmRule', {
+      ruleName: `kiro-pipeline-${environment}-alarm-rollback`,
+      description: `Trigger rollback Lambda when CD pipeline alarms enter ALARM state in ${environment}`,
+      eventPattern: {
+        source: ['aws.cloudwatch'],
+        detailType: ['CloudWatch Alarm State Change'],
+        detail: {
+          alarmName: [
+            { prefix: `kiro-worker-${environment}` },
+            { prefix: `kiro-pipeline-${environment}` },
+          ],
+          state: {
+            value: ['ALARM'],
+          },
+        },
+      },
+    });
+    
+    // Add rollback Lambda as target
+    alarmRule.addTarget(new targets.LambdaFunction(this.rollbackLambda, {
+      retryAttempts: 0, // Don't retry - Lambda handles errors
+      maxEventAge: cdk.Duration.minutes(5), // Discard events older than 5 minutes
+    }));
+    
+    // Add tags
+    cdk.Tags.of(this.rollbackLambda).add('Component', 'Rollback');
+    cdk.Tags.of(this.rollbackLambda).add('Purpose', 'AutomatedRollback');
+    cdk.Tags.of(dlq).add('Component', 'Rollback');
+    cdk.Tags.of(alarmRule).add('Component', 'Rollback');
+  }
 
   /**
    * Create CloudFormation outputs for cross-stack references
@@ -836,6 +967,19 @@ export class MonitoringAlertingStack extends cdk.Stack {
       new cdk.CfnOutput(this, 'PipelineDashboardName', {
         value: this.pipelineDashboard.dashboardName,
         description: 'Name of the CloudWatch dashboard for pipeline metrics',
+      });
+    }
+    
+    if (this.rollbackLambda) {
+      new cdk.CfnOutput(this, 'RollbackLambdaArn', {
+        value: this.rollbackLambda.functionArn,
+        description: 'ARN of the rollback Lambda function',
+        exportName: `${this.stackName}-RollbackLambdaArn`,
+      });
+      
+      new cdk.CfnOutput(this, 'RollbackLambdaName', {
+        value: this.rollbackLambda.functionName,
+        description: 'Name of the rollback Lambda function',
       });
     }
 

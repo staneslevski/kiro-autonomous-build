@@ -12,37 +12,38 @@ import {
   S3Client,
   GetObjectCommand,
 } from '@aws-sdk/client-s3';
-import {
-  RollbackOrchestrator,
-  Deployment,
-  RollbackResult,
-} from '../../lib/components/rollback-orchestrator';
-import { DeploymentStateManager } from '../../lib/components/deployment-state-manager';
-import { HealthCheckMonitor } from '../../lib/components/health-check-monitor';
 
 // Mock AWS SDK clients
 const codepipelineMock = mockClient(CodePipelineClient);
 const snsMock = mockClient(SNSClient);
 const s3Mock = mockClient(S3Client);
 
-// Mock DeploymentStateManager
+// Create mock implementations
+const mockGetLastKnownGoodDeployment = vi.fn();
+const mockMonitorHealthChecks = vi.fn();
+
+// Mock the modules before importing
 vi.mock('../../lib/components/deployment-state-manager', () => ({
-  DeploymentStateManager: vi.fn().mockImplementation(() => ({
-    getLastKnownGoodDeployment: vi.fn(),
-  })),
+  DeploymentStateManager: class {
+    getLastKnownGoodDeployment = mockGetLastKnownGoodDeployment;
+  },
 }));
 
-// Mock HealthCheckMonitor
 vi.mock('../../lib/components/health-check-monitor', () => ({
-  HealthCheckMonitor: vi.fn().mockImplementation(() => ({
-    monitorHealthChecks: vi.fn(),
-  })),
+  HealthCheckMonitor: class {
+    monitorHealthChecks = mockMonitorHealthChecks;
+  },
 }));
+
+// Import after mocks
+import {
+  RollbackOrchestrator,
+  Deployment,
+  RollbackResult,
+} from '../../lib/components/rollback-orchestrator';
 
 describe('RollbackOrchestrator', () => {
   let orchestrator: RollbackOrchestrator;
-  let mockDeploymentStateManager: any;
-  let mockHealthCheckMonitor: any;
   
   const config = {
     tableName: 'test-deployments-table',
@@ -61,41 +62,45 @@ describe('RollbackOrchestrator', () => {
   };
   
   beforeEach(() => {
+    // Use fake timers
+    vi.useFakeTimers();
+    
     // Reset all mocks
     codepipelineMock.reset();
     snsMock.reset();
     s3Mock.reset();
     vi.clearAllMocks();
     
-    // Create orchestrator
-    orchestrator = new RollbackOrchestrator(config);
-    
-    // Get mock instances
-    mockDeploymentStateManager = (DeploymentStateManager as any).mock.results[0].value;
-    
     // Setup default mock responses
     snsMock.on(PublishCommand).resolves({});
     s3Mock.on(GetObjectCommand).resolves({});
+    
+    // Setup default mock implementations
+    mockMonitorHealthChecks.mockResolvedValue({
+      success: true,
+      failedAlarms: [],
+      duration: 5000,
+    });
+    
+    mockGetLastKnownGoodDeployment.mockResolvedValue(null);
+    
+    // Create orchestrator
+    orchestrator = new RollbackOrchestrator(config);
   });
   
   afterEach(() => {
+    vi.useRealTimers();
     vi.restoreAllMocks();
   });
   
   describe('executeRollback', () => {
     it('should perform stage-level rollback first', async () => {
-      // Mock successful stage rollback
-      mockHealthCheckMonitor = {
-        monitorHealthChecks: vi.fn().mockResolvedValue({
-          success: true,
-          failedAlarms: [],
-          duration: 5000,
-        }),
-      };
+      const resultPromise = orchestrator.executeRollback(testDeployment, 'Test failure');
       
-      (HealthCheckMonitor as any).mockImplementation(() => mockHealthCheckMonitor);
+      // Fast-forward through the 60-second stabilization wait
+      await vi.advanceTimersByTimeAsync(60000);
       
-      const result = await orchestrator.executeRollback(testDeployment, 'Test failure');
+      const result = await resultPromise;
       
       expect(result.success).toBe(true);
       expect(result.level).toBe('stage');
@@ -105,39 +110,40 @@ describe('RollbackOrchestrator', () => {
     it('should fall back to full rollback when stage rollback fails', async () => {
       // Mock failed stage rollback, successful full rollback
       let callCount = 0;
-      mockHealthCheckMonitor = {
-        monitorHealthChecks: vi.fn().mockImplementation(() => {
-          callCount++;
-          if (callCount === 1) {
-            // First call (stage rollback) fails
-            return Promise.resolve({
-              success: false,
-              failedAlarms: [{ name: 'test-alarm', state: 'ALARM' }],
-              duration: 5000,
-              reason: 'Alarm in ALARM state',
-            });
-          } else {
-            // Subsequent calls (full rollback) succeed
-            return Promise.resolve({
-              success: true,
-              failedAlarms: [],
-              duration: 5000,
-            });
-          }
-        }),
-      };
-      
-      (HealthCheckMonitor as any).mockImplementation(() => mockHealthCheckMonitor);
+      mockMonitorHealthChecks.mockImplementation(() => {
+        callCount++;
+        if (callCount === 1) {
+          // First call (stage rollback) fails
+          return Promise.resolve({
+            success: false,
+            failedAlarms: [{ name: 'test-alarm', state: 'ALARM' }],
+            duration: 5000,
+            reason: 'Alarm in ALARM state',
+          });
+        } else {
+          // Subsequent calls (full rollback) succeed
+          return Promise.resolve({
+            success: true,
+            failedAlarms: [],
+            duration: 5000,
+          });
+        }
+      });
       
       // Mock last known good deployment
-      mockDeploymentStateManager.getLastKnownGoodDeployment.mockResolvedValue({
+      mockGetLastKnownGoodDeployment.mockResolvedValue({
         deploymentId: 'prod#1234567890',
         environment: 'production',
         version: 'good123',
         status: 'succeeded',
       });
       
-      const result = await orchestrator.executeRollback(testDeployment, 'Test failure');
+      const resultPromise = orchestrator.executeRollback(testDeployment, 'Test failure');
+      
+      // Fast-forward through all stabilization waits (4 environments * 60 seconds)
+      await vi.advanceTimersByTimeAsync(240000);
+      
+      const result = await resultPromise;
       
       expect(result.success).toBe(true);
       expect(result.level).toBe('full');
@@ -145,26 +151,27 @@ describe('RollbackOrchestrator', () => {
     
     it('should return failure when both rollback attempts fail', async () => {
       // Mock all rollbacks failing
-      mockHealthCheckMonitor = {
-        monitorHealthChecks: vi.fn().mockResolvedValue({
-          success: false,
-          failedAlarms: [{ name: 'test-alarm', state: 'ALARM' }],
-          duration: 5000,
-          reason: 'Alarm in ALARM state',
-        }),
-      };
-      
-      (HealthCheckMonitor as any).mockImplementation(() => mockHealthCheckMonitor);
+      mockMonitorHealthChecks.mockResolvedValue({
+        success: false,
+        failedAlarms: [{ name: 'test-alarm', state: 'ALARM' }],
+        duration: 5000,
+        reason: 'Alarm in ALARM state',
+      });
       
       // Mock last known good deployment
-      mockDeploymentStateManager.getLastKnownGoodDeployment.mockResolvedValue({
+      mockGetLastKnownGoodDeployment.mockResolvedValue({
         deploymentId: 'prod#1234567890',
         environment: 'production',
         version: 'good123',
         status: 'succeeded',
       });
       
-      const result = await orchestrator.executeRollback(testDeployment, 'Test failure');
+      const resultPromise = orchestrator.executeRollback(testDeployment, 'Test failure');
+      
+      // Fast-forward through all stabilization waits
+      await vi.advanceTimersByTimeAsync(240000);
+      
+      const result = await resultPromise;
       
       expect(result.success).toBe(false);
       expect(result.level).toBe('none');
@@ -172,18 +179,12 @@ describe('RollbackOrchestrator', () => {
     });
     
     it('should send notifications at each rollback stage', async () => {
-      // Mock successful stage rollback
-      mockHealthCheckMonitor = {
-        monitorHealthChecks: vi.fn().mockResolvedValue({
-          success: true,
-          failedAlarms: [],
-          duration: 5000,
-        }),
-      };
+      const resultPromise = orchestrator.executeRollback(testDeployment, 'Test failure');
       
-      (HealthCheckMonitor as any).mockImplementation(() => mockHealthCheckMonitor);
+      // Fast-forward through the stabilization wait
+      await vi.advanceTimersByTimeAsync(60000);
       
-      await orchestrator.executeRollback(testDeployment, 'Test failure');
+      await resultPromise;
       
       // Should send 2 notifications: start and success
       expect(snsMock.calls()).toHaveLength(2);
@@ -207,7 +208,18 @@ describe('RollbackOrchestrator', () => {
       // Mock S3 error
       s3Mock.on(GetObjectCommand).rejects(new Error('S3 error'));
       
-      await expect(orchestrator.executeRollback(testDeployment, 'Test failure')).rejects.toThrow();
+      // Mock no last known good deployment for full rollback
+      mockGetLastKnownGoodDeployment.mockResolvedValue(null);
+      
+      const resultPromise = orchestrator.executeRollback(testDeployment, 'Test failure');
+      
+      // Fast-forward through stabilization waits
+      await vi.advanceTimersByTimeAsync(60000);
+      
+      const result = await resultPromise;
+      
+      // Should return failure (not throw)
+      expect(result.success).toBe(false);
       
       // Should send failure notification
       const failureCalls = snsMock.calls().filter(call => 
@@ -219,18 +231,12 @@ describe('RollbackOrchestrator', () => {
   
   describe('rollbackStage', () => {
     it('should rollback single environment successfully', async () => {
-      // Mock successful health check
-      mockHealthCheckMonitor = {
-        monitorHealthChecks: vi.fn().mockResolvedValue({
-          success: true,
-          failedAlarms: [],
-          duration: 5000,
-        }),
-      };
+      const resultPromise = orchestrator.rollbackStage(testDeployment);
       
-      (HealthCheckMonitor as any).mockImplementation(() => mockHealthCheckMonitor);
+      // Fast-forward through the stabilization wait
+      await vi.advanceTimersByTimeAsync(60000);
       
-      const result = await orchestrator.rollbackStage(testDeployment);
+      const result = await resultPromise;
       
       expect(result.success).toBe(true);
       expect(result.level).toBe('stage');
@@ -253,18 +259,12 @@ describe('RollbackOrchestrator', () => {
         infrastructureChanged: true,
       };
       
-      // Mock successful health check
-      mockHealthCheckMonitor = {
-        monitorHealthChecks: vi.fn().mockResolvedValue({
-          success: true,
-          failedAlarms: [],
-          duration: 5000,
-        }),
-      };
+      const resultPromise = orchestrator.rollbackStage(deploymentWithInfraChange);
       
-      (HealthCheckMonitor as any).mockImplementation(() => mockHealthCheckMonitor);
+      // Fast-forward through the stabilization wait
+      await vi.advanceTimersByTimeAsync(60000);
       
-      const result = await orchestrator.rollbackStage(deploymentWithInfraChange);
+      const result = await resultPromise;
       
       expect(result.success).toBe(true);
       // Infrastructure rollback would be called (placeholder in implementation)
@@ -272,18 +272,19 @@ describe('RollbackOrchestrator', () => {
     
     it('should return failure when validation fails', async () => {
       // Mock failed health check
-      mockHealthCheckMonitor = {
-        monitorHealthChecks: vi.fn().mockResolvedValue({
-          success: false,
-          failedAlarms: [{ name: 'test-alarm', state: 'ALARM' }],
-          duration: 5000,
-          reason: 'Alarm in ALARM state',
-        }),
-      };
+      mockMonitorHealthChecks.mockResolvedValue({
+        success: false,
+        failedAlarms: [{ name: 'test-alarm', state: 'ALARM' }],
+        duration: 5000,
+        reason: 'Alarm in ALARM state',
+      });
       
-      (HealthCheckMonitor as any).mockImplementation(() => mockHealthCheckMonitor);
+      const resultPromise = orchestrator.rollbackStage(testDeployment);
       
-      const result = await orchestrator.rollbackStage(testDeployment);
+      // Fast-forward through the stabilization wait
+      await vi.advanceTimersByTimeAsync(60000);
+      
+      const result = await resultPromise;
       
       expect(result.success).toBe(false);
       expect(result.reason).toContain('Alarm in ALARM state');
@@ -293,36 +294,37 @@ describe('RollbackOrchestrator', () => {
   describe('rollbackFull', () => {
     it('should rollback all environments in correct order', async () => {
       // Mock successful health checks
-      mockHealthCheckMonitor = {
-        monitorHealthChecks: vi.fn().mockResolvedValue({
-          success: true,
-          failedAlarms: [],
-          duration: 5000,
-        }),
-      };
-      
-      (HealthCheckMonitor as any).mockImplementation(() => mockHealthCheckMonitor);
+      mockMonitorHealthChecks.mockResolvedValue({
+        success: true,
+        failedAlarms: [],
+        duration: 5000,
+      });
       
       // Mock last known good deployment
-      mockDeploymentStateManager.getLastKnownGoodDeployment.mockResolvedValue({
+      mockGetLastKnownGoodDeployment.mockResolvedValue({
         deploymentId: 'prod#1234567890',
         environment: 'production',
         version: 'good123',
         status: 'succeeded',
       });
       
-      const result = await orchestrator.rollbackFull(testDeployment);
+      const resultPromise = orchestrator.rollbackFull(testDeployment);
+      
+      // Fast-forward through all stabilization waits (3 environments * 60 seconds)
+      await vi.advanceTimersByTimeAsync(180000);
+      
+      const result = await resultPromise;
       
       expect(result.success).toBe(true);
       expect(result.level).toBe('full');
       
       // Should call health check monitor 3 times (once per environment)
-      expect(mockHealthCheckMonitor.monitorHealthChecks).toHaveBeenCalledTimes(3);
+      expect(mockMonitorHealthChecks).toHaveBeenCalledTimes(3);
     });
     
     it('should return failure when no last known good deployment found', async () => {
       // Mock no last known good deployment
-      mockDeploymentStateManager.getLastKnownGoodDeployment.mockResolvedValue(null);
+      mockGetLastKnownGoodDeployment.mockResolvedValue(null);
       
       const result = await orchestrator.rollbackFull(testDeployment);
       
@@ -333,39 +335,40 @@ describe('RollbackOrchestrator', () => {
     it('should stop and return failure when any environment rollback fails', async () => {
       // Mock health checks: production succeeds, staging fails
       let callCount = 0;
-      mockHealthCheckMonitor = {
-        monitorHealthChecks: vi.fn().mockImplementation(() => {
-          callCount++;
-          if (callCount === 1) {
-            // Production succeeds
-            return Promise.resolve({
-              success: true,
-              failedAlarms: [],
-              duration: 5000,
-            });
-          } else {
-            // Staging fails
-            return Promise.resolve({
-              success: false,
-              failedAlarms: [{ name: 'staging-alarm', state: 'ALARM' }],
-              duration: 5000,
-              reason: 'Alarm in ALARM state',
-            });
-          }
-        }),
-      };
-      
-      (HealthCheckMonitor as any).mockImplementation(() => mockHealthCheckMonitor);
+      mockMonitorHealthChecks.mockImplementation(() => {
+        callCount++;
+        if (callCount === 1) {
+          // Production succeeds
+          return Promise.resolve({
+            success: true,
+            failedAlarms: [],
+            duration: 5000,
+          });
+        } else {
+          // Staging fails
+          return Promise.resolve({
+            success: false,
+            failedAlarms: [{ name: 'staging-alarm', state: 'ALARM' }],
+            duration: 5000,
+            reason: 'Alarm in ALARM state',
+          });
+        }
+      });
       
       // Mock last known good deployment
-      mockDeploymentStateManager.getLastKnownGoodDeployment.mockResolvedValue({
+      mockGetLastKnownGoodDeployment.mockResolvedValue({
         deploymentId: 'prod#1234567890',
         environment: 'production',
         version: 'good123',
         status: 'succeeded',
       });
       
-      const result = await orchestrator.rollbackFull(testDeployment);
+      const resultPromise = orchestrator.rollbackFull(testDeployment);
+      
+      // Fast-forward through stabilization waits
+      await vi.advanceTimersByTimeAsync(120000);
+      
+      const result = await resultPromise;
       
       expect(result.success).toBe(false);
       expect(result.reason).toContain('Failed to rollback staging');
@@ -375,35 +378,37 @@ describe('RollbackOrchestrator', () => {
   describe('validateRollback', () => {
     it('should validate rollback successfully', async () => {
       // Mock successful health check
-      mockHealthCheckMonitor = {
-        monitorHealthChecks: vi.fn().mockResolvedValue({
-          success: true,
-          failedAlarms: [],
-          duration: 5000,
-        }),
-      };
+      mockMonitorHealthChecks.mockResolvedValue({
+        success: true,
+        failedAlarms: [],
+        duration: 5000,
+      });
       
-      (HealthCheckMonitor as any).mockImplementation(() => mockHealthCheckMonitor);
+      const resultPromise = orchestrator.validateRollback('test');
       
-      const result = await orchestrator.validateRollback('test');
+      // Fast-forward through stabilization wait
+      await vi.advanceTimersByTimeAsync(60000);
+      
+      const result = await resultPromise;
       
       expect(result.success).toBe(true);
     });
     
     it('should return failure when health checks fail', async () => {
       // Mock failed health check
-      mockHealthCheckMonitor = {
-        monitorHealthChecks: vi.fn().mockResolvedValue({
-          success: false,
-          failedAlarms: [{ name: 'test-alarm', state: 'ALARM' }],
-          duration: 5000,
-          reason: 'Health checks failed',
-        }),
-      };
+      mockMonitorHealthChecks.mockResolvedValue({
+        success: false,
+        failedAlarms: [{ name: 'test-alarm', state: 'ALARM' }],
+        duration: 5000,
+        reason: 'Health checks failed',
+      });
       
-      (HealthCheckMonitor as any).mockImplementation(() => mockHealthCheckMonitor);
+      const resultPromise = orchestrator.validateRollback('test');
       
-      const result = await orchestrator.validateRollback('test');
+      // Fast-forward through stabilization wait
+      await vi.advanceTimersByTimeAsync(60000);
+      
+      const result = await resultPromise;
       
       expect(result.success).toBe(false);
       expect(result.reason).toContain('Health checks failed');
@@ -416,18 +421,19 @@ describe('RollbackOrchestrator', () => {
       snsMock.on(PublishCommand).rejects(new Error('SNS error'));
       
       // Mock successful health check
-      mockHealthCheckMonitor = {
-        monitorHealthChecks: vi.fn().mockResolvedValue({
-          success: true,
-          failedAlarms: [],
-          duration: 5000,
-        }),
-      };
+      mockMonitorHealthChecks.mockResolvedValue({
+        success: true,
+        failedAlarms: [],
+        duration: 5000,
+      });
       
-      (HealthCheckMonitor as any).mockImplementation(() => mockHealthCheckMonitor);
+      const resultPromise = orchestrator.executeRollback(testDeployment, 'Test failure');
+      
+      // Fast-forward through stabilization wait
+      await vi.advanceTimersByTimeAsync(60000);
       
       // Should not throw error even if SNS fails
-      const result = await orchestrator.executeRollback(testDeployment, 'Test failure');
+      const result = await resultPromise;
       
       expect(result.success).toBe(true);
     });
@@ -435,16 +441,23 @@ describe('RollbackOrchestrator', () => {
   
   describe('error handling', () => {
     it('should handle unexpected errors during rollback', async () => {
-      // Mock unexpected error
-      mockHealthCheckMonitor = {
-        monitorHealthChecks: vi.fn().mockRejectedValue(new Error('Unexpected error')),
-      };
+      // Mock unexpected error in health check
+      mockMonitorHealthChecks.mockRejectedValue(new Error('Unexpected error'));
       
-      (HealthCheckMonitor as any).mockImplementation(() => mockHealthCheckMonitor);
+      // Mock no last known good deployment for full rollback
+      mockGetLastKnownGoodDeployment.mockResolvedValue(null);
       
-      await expect(orchestrator.executeRollback(testDeployment, 'Test failure')).rejects.toThrow(
-        'Rollback orchestration failed'
-      );
+      const resultPromise = orchestrator.executeRollback(testDeployment, 'Test failure');
+      
+      // Fast-forward through stabilization wait
+      await vi.advanceTimersByTimeAsync(60000);
+      
+      const result = await resultPromise;
+      
+      // Should return failure (not throw) because errors are caught in rollbackStage
+      expect(result.success).toBe(false);
+      expect(result.level).toBe('none');
+      expect(result.reason).toContain('Unexpected error');
     });
   });
 });

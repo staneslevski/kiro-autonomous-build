@@ -71,7 +71,7 @@ describe('MonitoringAlertingStack', () => {
 
   describe('Stack Creation', () => {
     it('should create stack successfully', () => {
-      const stack = new MonitoringAlertingStack(app, 'TestStack', {
+      const stack = new MonitoringAlertingStack(testApp, 'TestStack', {
         config: testConfig,
         codeBuildProject: mockCodeBuildProject,
         lambdaFunction: mockLambdaFunction,
@@ -85,7 +85,7 @@ describe('MonitoringAlertingStack', () => {
     });
 
     it('should create stack with alert email', () => {
-      const stack = new MonitoringAlertingStack(app, 'TestStack', {
+      const stack = new MonitoringAlertingStack(testApp, 'TestStack', {
         config: testConfig,
         codeBuildProject: mockCodeBuildProject,
         lambdaFunction: mockLambdaFunction,
@@ -105,7 +105,7 @@ describe('MonitoringAlertingStack', () => {
 
   describe('SNS Topic Configuration', () => {
     it('should create SNS topic with correct name', () => {
-      const stack = new MonitoringAlertingStack(app, 'TestStack', {
+      const stack = new MonitoringAlertingStack(testApp, 'TestStack', {
         config: testConfig,
         codeBuildProject: mockCodeBuildProject,
         lambdaFunction: mockLambdaFunction,
@@ -121,7 +121,7 @@ describe('MonitoringAlertingStack', () => {
     });
 
     it('should create exactly one SNS topic', () => {
-      const stack = new MonitoringAlertingStack(app, 'TestStack', {
+      const stack = new MonitoringAlertingStack(testApp, 'TestStack', {
         config: testConfig,
         codeBuildProject: mockCodeBuildProject,
         lambdaFunction: mockLambdaFunction,
@@ -133,7 +133,7 @@ describe('MonitoringAlertingStack', () => {
     });
 
     it('should have proper tags on SNS topic', () => {
-      const stack = new MonitoringAlertingStack(app, 'TestStack', {
+      const stack = new MonitoringAlertingStack(testApp, 'TestStack', {
         config: testConfig,
         codeBuildProject: mockCodeBuildProject,
         lambdaFunction: mockLambdaFunction,
@@ -153,7 +153,7 @@ describe('MonitoringAlertingStack', () => {
 
   describe('Build Metric Alarms', () => {
     it('should create build failure rate warning alarm', () => {
-      const stack = new MonitoringAlertingStack(app, 'TestStack', {
+      const stack = new MonitoringAlertingStack(testApp, 'TestStack', {
         config: testConfig,
         codeBuildProject: mockCodeBuildProject,
         lambdaFunction: mockLambdaFunction,
@@ -171,7 +171,7 @@ describe('MonitoringAlertingStack', () => {
     });
 
     it('should create build failure rate error alarm', () => {
-      const stack = new MonitoringAlertingStack(app, 'TestStack', {
+      const stack = new MonitoringAlertingStack(testApp, 'TestStack', {
         config: testConfig,
         codeBuildProject: mockCodeBuildProject,
         lambdaFunction: mockLambdaFunction,
@@ -187,7 +187,7 @@ describe('MonitoringAlertingStack', () => {
     });
 
     it('should create build duration warning alarm', () => {
-      const stack = new MonitoringAlertingStack(app, 'TestStack', {
+      const stack = new MonitoringAlertingStack(testApp, 'TestStack', {
         config: testConfig,
         codeBuildProject: mockCodeBuildProject,
         lambdaFunction: mockLambdaFunction,
@@ -204,7 +204,7 @@ describe('MonitoringAlertingStack', () => {
     });
 
     it('should create build duration error alarm', () => {
-      const stack = new MonitoringAlertingStack(app, 'TestStack', {
+      const stack = new MonitoringAlertingStack(testApp, 'TestStack', {
         config: testConfig,
         codeBuildProject: mockCodeBuildProject,
         lambdaFunction: mockLambdaFunction,
@@ -220,7 +220,7 @@ describe('MonitoringAlertingStack', () => {
     });
 
     it('should create build success rate alarm', () => {
-      const stack = new MonitoringAlertingStack(app, 'TestStack', {
+      const stack = new MonitoringAlertingStack(testApp, 'TestStack', {
         config: testConfig,
         codeBuildProject: mockCodeBuildProject,
         lambdaFunction: mockLambdaFunction,
@@ -238,7 +238,7 @@ describe('MonitoringAlertingStack', () => {
 
   describe('Operation Metric Alarms', () => {
     it('should create Lambda error rate warning alarm', () => {
-      const stack = new MonitoringAlertingStack(app, 'TestStack', {
+      const stack = new MonitoringAlertingStack(testApp, 'TestStack', {
         config: testConfig,
         codeBuildProject: mockCodeBuildProject,
         lambdaFunction: mockLambdaFunction,
@@ -254,7 +254,7 @@ describe('MonitoringAlertingStack', () => {
     });
 
     it('should create Lambda error rate error alarm', () => {
-      const stack = new MonitoringAlertingStack(app, 'TestStack', {
+      const stack = new MonitoringAlertingStack(testApp, 'TestStack', {
         config: testConfig,
         codeBuildProject: mockCodeBuildProject,
         lambdaFunction: mockLambdaFunction,
@@ -270,7 +270,7 @@ describe('MonitoringAlertingStack', () => {
     });
 
     it('should create Lambda throttles alarm', () => {
-      const stack = new MonitoringAlertingStack(app, 'TestStack', {
+      const stack = new MonitoringAlertingStack(testApp, 'TestStack', {
         config: testConfig,
         codeBuildProject: mockCodeBuildProject,
         lambdaFunction: mockLambdaFunction,
@@ -286,7 +286,7 @@ describe('MonitoringAlertingStack', () => {
     });
 
     it('should create Lambda duration alarm', () => {
-      const stack = new MonitoringAlertingStack(app, 'TestStack', {
+      const stack = new MonitoringAlertingStack(testApp, 'TestStack', {
         config: testConfig,
         codeBuildProject: mockCodeBuildProject,
         lambdaFunction: mockLambdaFunction,
@@ -302,7 +302,7 @@ describe('MonitoringAlertingStack', () => {
     });
 
     it('should create DynamoDB read throttle warning alarm', () => {
-      const stack = new MonitoringAlertingStack(app, 'TestStack', {
+      const stack = new MonitoringAlertingStack(testApp, 'TestStack', {
         config: testConfig,
         codeBuildProject: mockCodeBuildProject,
         lambdaFunction: mockLambdaFunction,
@@ -318,7 +318,7 @@ describe('MonitoringAlertingStack', () => {
     });
 
     it('should create DynamoDB read throttle error alarm', () => {
-      const stack = new MonitoringAlertingStack(app, 'TestStack', {
+      const stack = new MonitoringAlertingStack(testApp, 'TestStack', {
         config: testConfig,
         codeBuildProject: mockCodeBuildProject,
         lambdaFunction: mockLambdaFunction,
@@ -334,7 +334,7 @@ describe('MonitoringAlertingStack', () => {
     });
 
     it('should create DynamoDB system errors alarm', () => {
-      const stack = new MonitoringAlertingStack(app, 'TestStack', {
+      const stack = new MonitoringAlertingStack(testApp, 'TestStack', {
         config: testConfig,
         codeBuildProject: mockCodeBuildProject,
         lambdaFunction: mockLambdaFunction,
@@ -352,7 +352,7 @@ describe('MonitoringAlertingStack', () => {
 
   describe('Resource Metric Alarms', () => {
     it('should create Lambda concurrent executions alarm', () => {
-      const stack = new MonitoringAlertingStack(app, 'TestStack', {
+      const stack = new MonitoringAlertingStack(testApp, 'TestStack', {
         config: testConfig,
         codeBuildProject: mockCodeBuildProject,
         lambdaFunction: mockLambdaFunction,
@@ -371,7 +371,7 @@ describe('MonitoringAlertingStack', () => {
 
   describe('Alarm Actions', () => {
     it('should configure SNS actions for all alarms', () => {
-      const stack = new MonitoringAlertingStack(app, 'TestStack', {
+      const stack = new MonitoringAlertingStack(testApp, 'TestStack', {
         config: testConfig,
         codeBuildProject: mockCodeBuildProject,
         lambdaFunction: mockLambdaFunction,
@@ -393,7 +393,7 @@ describe('MonitoringAlertingStack', () => {
 
   describe('Environment-Specific Thresholds', () => {
     it('should use test environment thresholds', () => {
-      const stack = new MonitoringAlertingStack(app, 'TestStack', {
+      const stack = new MonitoringAlertingStack(testApp, 'TestStack', {
         config: testConfig,
         codeBuildProject: mockCodeBuildProject,
         lambdaFunction: mockLambdaFunction,
@@ -445,7 +445,7 @@ describe('MonitoringAlertingStack', () => {
     });
 
     it('should have stricter thresholds for production than test', () => {
-      const testStack = new MonitoringAlertingStack(app, 'TestStack', {
+      const testStack = new MonitoringAlertingStack(testApp, 'TestStack', {
         config: testConfig,
         codeBuildProject: mockCodeBuildProject,
         lambdaFunction: mockLambdaFunction,
@@ -474,7 +474,7 @@ describe('MonitoringAlertingStack', () => {
 
   describe('NotificationInterface', () => {
     it('should create notification service', () => {
-      const stack = new MonitoringAlertingStack(app, 'TestStack', {
+      const stack = new MonitoringAlertingStack(testApp, 'TestStack', {
         config: testConfig,
         codeBuildProject: mockCodeBuildProject,
         lambdaFunction: mockLambdaFunction,
@@ -486,7 +486,7 @@ describe('MonitoringAlertingStack', () => {
     });
 
     it('should provide topic ARN through interface', () => {
-      const stack = new MonitoringAlertingStack(app, 'TestStack', {
+      const stack = new MonitoringAlertingStack(testApp, 'TestStack', {
         config: testConfig,
         codeBuildProject: mockCodeBuildProject,
         lambdaFunction: mockLambdaFunction,
@@ -502,7 +502,7 @@ describe('MonitoringAlertingStack', () => {
 
   describe('CloudFormation Outputs', () => {
     it('should create alert topic ARN output', () => {
-      const stack = new MonitoringAlertingStack(app, 'TestStack', {
+      const stack = new MonitoringAlertingStack(testApp, 'TestStack', {
         config: testConfig,
         codeBuildProject: mockCodeBuildProject,
         lambdaFunction: mockLambdaFunction,
@@ -520,7 +520,7 @@ describe('MonitoringAlertingStack', () => {
     });
 
     it('should create alert topic name output', () => {
-      const stack = new MonitoringAlertingStack(app, 'TestStack', {
+      const stack = new MonitoringAlertingStack(testApp, 'TestStack', {
         config: testConfig,
         codeBuildProject: mockCodeBuildProject,
         lambdaFunction: mockLambdaFunction,
@@ -535,7 +535,7 @@ describe('MonitoringAlertingStack', () => {
     });
 
     it('should create threshold outputs', () => {
-      const stack = new MonitoringAlertingStack(app, 'TestStack', {
+      const stack = new MonitoringAlertingStack(testApp, 'TestStack', {
         config: testConfig,
         codeBuildProject: mockCodeBuildProject,
         lambdaFunction: mockLambdaFunction,
@@ -564,7 +564,7 @@ describe('MonitoringAlertingStack', () => {
 
   describe('Alarm Count', () => {
     it('should create expected number of alarms', () => {
-      const stack = new MonitoringAlertingStack(app, 'TestStack', {
+      const stack = new MonitoringAlertingStack(testApp, 'TestStack', {
         config: testConfig,
         codeBuildProject: mockCodeBuildProject,
         lambdaFunction: mockLambdaFunction,
@@ -584,7 +584,7 @@ describe('MonitoringAlertingStack', () => {
 
   describe('Snapshot Tests', () => {
     it('should match snapshot for test environment', () => {
-      const stack = new MonitoringAlertingStack(app, 'TestStack', {
+      const stack = new MonitoringAlertingStack(testApp, 'TestStack', {
         config: testConfig,
         codeBuildProject: mockCodeBuildProject,
         lambdaFunction: mockLambdaFunction,
@@ -658,7 +658,7 @@ describe('MonitoringAlertingStack', () => {
     
     describe('SNS Topics', () => {
       it('should create all 3 new SNS topics with correct names', () => {
-        const stack = new MonitoringAlertingStack(app, 'TestStack', {
+        const stack = new MonitoringAlertingStack(testApp, 'TestStack', {
           config: testConfig,
           codeBuildProject: mockCodeBuildProject,
           lambdaFunction: mockLambdaFunction,
@@ -692,7 +692,7 @@ describe('MonitoringAlertingStack', () => {
       });
       
       it('should have email subscriptions configured when alertEmail provided', () => {
-        const stack = new MonitoringAlertingStack(app, 'TestStack', {
+        const stack = new MonitoringAlertingStack(testApp, 'TestStack', {
           config: testConfig,
           codeBuildProject: mockCodeBuildProject,
           lambdaFunction: mockLambdaFunction,
@@ -715,7 +715,7 @@ describe('MonitoringAlertingStack', () => {
       });
       
       it('should expose SNS topics as public properties', () => {
-        const stack = new MonitoringAlertingStack(app, 'TestStack', {
+        const stack = new MonitoringAlertingStack(testApp, 'TestStack', {
           config: testConfig,
           codeBuildProject: mockCodeBuildProject,
           lambdaFunction: mockLambdaFunction,
@@ -732,7 +732,7 @@ describe('MonitoringAlertingStack', () => {
     
     describe('CloudWatch Alarms', () => {
       it('should create CloudWatch alarms with correct thresholds', () => {
-        const stack = new MonitoringAlertingStack(app, 'TestStack', {
+        const stack = new MonitoringAlertingStack(testApp, 'TestStack', {
           config: testConfig,
           codeBuildProject: mockCodeBuildProject,
           lambdaFunction: mockLambdaFunction,
@@ -772,7 +772,7 @@ describe('MonitoringAlertingStack', () => {
       });
       
       it('should have SNS actions configured for alarms', () => {
-        const stack = new MonitoringAlertingStack(app, 'TestStack', {
+        const stack = new MonitoringAlertingStack(testApp, 'TestStack', {
           config: testConfig,
           codeBuildProject: mockCodeBuildProject,
           lambdaFunction: mockLambdaFunction,
@@ -817,7 +817,7 @@ describe('MonitoringAlertingStack', () => {
     
     describe('CloudWatch Dashboard', () => {
       it('should create dashboard with pipeline metrics widgets', () => {
-        const stack = new MonitoringAlertingStack(app, 'TestStack', {
+        const stack = new MonitoringAlertingStack(testApp, 'TestStack', {
           config: testConfig,
           codeBuildProject: mockCodeBuildProject,
           lambdaFunction: mockLambdaFunction,
@@ -846,7 +846,7 @@ describe('MonitoringAlertingStack', () => {
       });
       
       it('should expose dashboard as public property', () => {
-        const stack = new MonitoringAlertingStack(app, 'TestStack', {
+        const stack = new MonitoringAlertingStack(testApp, 'TestStack', {
           config: testConfig,
           codeBuildProject: mockCodeBuildProject,
           lambdaFunction: mockLambdaFunction,
@@ -861,7 +861,7 @@ describe('MonitoringAlertingStack', () => {
     
     describe('CloudFormation Outputs', () => {
       it('should export topic ARNs for CD pipeline topics', () => {
-        const stack = new MonitoringAlertingStack(app, 'TestStack', {
+        const stack = new MonitoringAlertingStack(testApp, 'TestStack', {
           config: testConfig,
           codeBuildProject: mockCodeBuildProject,
           lambdaFunction: mockLambdaFunction,
@@ -905,7 +905,7 @@ describe('MonitoringAlertingStack', () => {
     
     describe('Snapshot with CD Pipeline', () => {
       it('should match snapshot with CD pipeline monitoring', () => {
-        const stack = new MonitoringAlertingStack(app, 'TestStack', {
+        const stack = new MonitoringAlertingStack(testApp, 'TestStack', {
           config: testConfig,
           codeBuildProject: mockCodeBuildProject,
           lambdaFunction: mockLambdaFunction,
@@ -920,3 +920,376 @@ describe('MonitoringAlertingStack', () => {
     });
   });
 });
+
+  describe('Rollback Lambda and EventBridge Integration', () => {
+    let mockPipeline: codepipeline.IPipeline;
+    let mockDeploymentsTable: dynamodb.ITable;
+    let testApp: cdk.App;
+    let localTestConfig: EnvironmentConfig;
+    let localMockCodeBuildProject: codebuild.IProject;
+    let localMockLambdaFunction: lambda.IFunction;
+    let localMockDynamoDBTable: dynamodb.ITable;
+    
+    beforeEach(() => {
+      testApp = new cdk.App();
+      
+      localTestConfig = {
+        account: '123456789012',
+        region: 'us-east-1',
+        environment: 'test',
+        coverageThreshold: 80,
+        pollingInterval: 'rate(5 minutes)',
+        codeBuildComputeType: 'SMALL',
+        codeBuildTimeout: 60,
+        lambdaTimeout: 15,
+        lockTTLHours: 2,
+        artifactRetentionDays: 30,
+        logRetentionDays: 7,
+        enableDetailedMetrics: true,
+      };
+      
+      const mockStack = new cdk.Stack(testApp, 'MockPipelineStack');
+      
+      localMockCodeBuildProject = codebuild.Project.fromProjectName(
+        mockStack,
+        'MockProject',
+        'test-project'
+      );
+      
+      localMockLambdaFunction = lambda.Function.fromFunctionName(
+        mockStack,
+        'MockFunction',
+        'test-function'
+      );
+      
+      localMockDynamoDBTable = dynamodb.Table.fromTableName(
+        mockStack,
+        'MockTable',
+        'test-table'
+      );
+      
+      // Create mock pipeline
+      const sourceOutput = new codepipeline.Artifact();
+      mockPipeline = new codepipeline.Pipeline(mockStack, 'MockPipeline', {
+        pipelineName: 'test-pipeline',
+        stages: [
+          {
+            stageName: 'Source',
+            actions: [
+              new codepipeline_actions.GitHubSourceAction({
+                actionName: 'GitHub_Source',
+                owner: 'test-owner',
+                repo: 'test-repo',
+                oauthToken: cdk.SecretValue.unsafePlainText('test-token'),
+                output: sourceOutput,
+              }),
+            ],
+          },
+        ],
+      });
+      
+      // Create mock deployments table
+      mockDeploymentsTable = new dynamodb.Table(mockStack, 'MockDeploymentsTable', {
+        partitionKey: { name: 'deploymentId', type: dynamodb.AttributeType.STRING },
+      });
+    });
+    
+    it('should create rollback Lambda function with correct configuration', () => {
+      const stack = new MonitoringAlertingStack(testApp, 'TestStack', {
+        config: localTestConfig,
+        codeBuildProject: localMockCodeBuildProject,
+        lambdaFunction: localMockLambdaFunction,
+        dynamoDBTable: localMockDynamoDBTable,
+        cdPipeline: mockPipeline,
+        deploymentsTable: mockDeploymentsTable,
+      });
+      
+      const template = Template.fromStack(stack);
+      
+      // Verify Lambda function created
+      template.hasResourceProperties('AWS::Lambda::Function', {
+        FunctionName: 'kiro-pipeline-test-rollback',
+        Runtime: 'nodejs18.x',
+        Handler: 'index.handler',
+        Timeout: 900, // 15 minutes in seconds
+        MemorySize: 512,
+        Environment: {
+          Variables: {
+            TABLE_NAME: Match.anyValue(),
+            TOPIC_ARN: Match.anyValue(),
+            ARTIFACTS_BUCKET: 'kiro-pipeline-test-artifacts',
+            ENVIRONMENT_PREFIXES: 'kiro-worker-test,kiro-pipeline-test',
+          },
+        },
+      });
+    });
+    
+    it('should create Dead Letter Queue for rollback Lambda', () => {
+      const stack = new MonitoringAlertingStack(testApp, 'TestStack', {
+        config: localTestConfig,
+        codeBuildProject: localMockCodeBuildProject,
+        lambdaFunction: localMockLambdaFunction,
+        dynamoDBTable: localMockDynamoDBTable,
+        cdPipeline: mockPipeline,
+        deploymentsTable: mockDeploymentsTable,
+      });
+      
+      const template = Template.fromStack(stack);
+      
+      // Verify DLQ created
+      template.hasResourceProperties('AWS::SQS::Queue', {
+        QueueName: 'kiro-pipeline-test-rollback-dlq',
+        MessageRetentionPeriod: 1209600, // 14 days in seconds
+      });
+    });
+    
+    it('should configure Lambda with Dead Letter Queue', () => {
+      const stack = new MonitoringAlertingStack(testApp, 'TestStack', {
+        config: localTestConfig,
+        codeBuildProject: localMockCodeBuildProject,
+        lambdaFunction: localMockLambdaFunction,
+        dynamoDBTable: localMockDynamoDBTable,
+        cdPipeline: mockPipeline,
+        deploymentsTable: mockDeploymentsTable,
+      });
+      
+      const template = Template.fromStack(stack);
+      
+      // Verify Lambda has DLQ configured
+      template.hasResourceProperties('AWS::Lambda::Function', {
+        DeadLetterConfig: {
+          TargetArn: Match.anyValue(),
+        },
+      });
+    });
+    
+    it('should grant Lambda permissions to read from deployments table', () => {
+      const stack = new MonitoringAlertingStack(testApp, 'TestStack', {
+        config: testConfig,
+        codeBuildProject: mockCodeBuildProject,
+        lambdaFunction: mockLambdaFunction,
+        dynamoDBTable: mockDynamoDBTable,
+        cdPipeline: mockPipeline,
+        deploymentsTable: mockDeploymentsTable,
+      });
+      
+      const template = Template.fromStack(stack);
+      
+      // Verify IAM policy for DynamoDB read access
+      template.hasResourceProperties('AWS::IAM::Policy', {
+        PolicyDocument: {
+          Statement: Match.arrayWith([
+            Match.objectLike({
+              Action: Match.arrayWith([
+                'dynamodb:BatchGetItem',
+                'dynamodb:GetRecords',
+                'dynamodb:GetShardIterator',
+                'dynamodb:Query',
+                'dynamodb:GetItem',
+                'dynamodb:Scan',
+                'dynamodb:ConditionCheckItem',
+                'dynamodb:DescribeTable',
+              ]),
+              Effect: 'Allow',
+            }),
+          ]),
+        },
+      });
+    });
+    
+    it('should grant Lambda permissions for CodePipeline operations', () => {
+      const stack = new MonitoringAlertingStack(testApp, 'TestStack', {
+        config: testConfig,
+        codeBuildProject: mockCodeBuildProject,
+        lambdaFunction: mockLambdaFunction,
+        dynamoDBTable: mockDynamoDBTable,
+        cdPipeline: mockPipeline,
+        deploymentsTable: mockDeploymentsTable,
+      });
+      
+      const template = Template.fromStack(stack);
+      
+      // Verify IAM policy for CodePipeline access
+      template.hasResourceProperties('AWS::IAM::Policy', {
+        PolicyDocument: {
+          Statement: Match.arrayWith([
+            Match.objectLike({
+              Action: [
+                'codepipeline:GetPipelineState',
+                'codepipeline:GetPipelineExecution',
+                'codepipeline:StopPipelineExecution',
+              ],
+              Effect: 'Allow',
+              Resource: Match.stringLikeRegexp('.*kiro-pipeline-test'),
+            }),
+          ]),
+        },
+      });
+    });
+    
+    it('should grant Lambda permissions for S3 artifacts access', () => {
+      const stack = new MonitoringAlertingStack(testApp, 'TestStack', {
+        config: testConfig,
+        codeBuildProject: mockCodeBuildProject,
+        lambdaFunction: mockLambdaFunction,
+        dynamoDBTable: mockDynamoDBTable,
+        cdPipeline: mockPipeline,
+        deploymentsTable: mockDeploymentsTable,
+      });
+      
+      const template = Template.fromStack(stack);
+      
+      // Verify IAM policy for S3 access
+      template.hasResourceProperties('AWS::IAM::Policy', {
+        PolicyDocument: {
+          Statement: Match.arrayWith([
+            Match.objectLike({
+              Action: [
+                's3:GetObject',
+                's3:ListBucket',
+              ],
+              Effect: 'Allow',
+              Resource: Match.arrayWith([
+                Match.stringLikeRegexp('.*kiro-pipeline-test-artifacts'),
+              ]),
+            }),
+          ]),
+        },
+      });
+    });
+    
+    it('should grant Lambda permissions for CloudWatch alarms', () => {
+      const stack = new MonitoringAlertingStack(testApp, 'TestStack', {
+        config: testConfig,
+        codeBuildProject: mockCodeBuildProject,
+        lambdaFunction: mockLambdaFunction,
+        dynamoDBTable: mockDynamoDBTable,
+        cdPipeline: mockPipeline,
+        deploymentsTable: mockDeploymentsTable,
+      });
+      
+      const template = Template.fromStack(stack);
+      
+      // Verify IAM policy for CloudWatch access
+      template.hasResourceProperties('AWS::IAM::Policy', {
+        PolicyDocument: {
+          Statement: Match.arrayWith([
+            Match.objectLike({
+              Action: [
+                'cloudwatch:DescribeAlarms',
+                'cloudwatch:GetMetricStatistics',
+              ],
+              Effect: 'Allow',
+              Resource: '*',
+            }),
+          ]),
+        },
+      });
+    });
+    
+    it('should create EventBridge rule for CD pipeline alarms', () => {
+      const stack = new MonitoringAlertingStack(testApp, 'TestStack', {
+        config: testConfig,
+        codeBuildProject: mockCodeBuildProject,
+        lambdaFunction: mockLambdaFunction,
+        dynamoDBTable: mockDynamoDBTable,
+        cdPipeline: mockPipeline,
+        deploymentsTable: mockDeploymentsTable,
+      });
+      
+      const template = Template.fromStack(stack);
+      
+      // Verify EventBridge rule created
+      template.hasResourceProperties('AWS::Events::Rule', {
+        Name: 'kiro-pipeline-test-alarm-rollback',
+        Description: Match.stringLikeRegexp('.*rollback.*'),
+        EventPattern: {
+          source: ['aws.cloudwatch'],
+          'detail-type': ['CloudWatch Alarm State Change'],
+          detail: {
+            alarmName: [
+              { prefix: 'kiro-worker-test' },
+              { prefix: 'kiro-pipeline-test' },
+            ],
+            state: {
+              value: ['ALARM'],
+            },
+          },
+        },
+        State: 'ENABLED',
+      });
+    });
+    
+    it('should add rollback Lambda as EventBridge rule target', () => {
+      const stack = new MonitoringAlertingStack(testApp, 'TestStack', {
+        config: testConfig,
+        codeBuildProject: mockCodeBuildProject,
+        lambdaFunction: mockLambdaFunction,
+        dynamoDBTable: mockDynamoDBTable,
+        cdPipeline: mockPipeline,
+        deploymentsTable: mockDeploymentsTable,
+      });
+      
+      const template = Template.fromStack(stack);
+      
+      // Verify EventBridge rule has Lambda target
+      template.hasResourceProperties('AWS::Events::Rule', {
+        Targets: Match.arrayWith([
+          Match.objectLike({
+            Arn: Match.anyValue(),
+            RetryPolicy: {
+              MaximumRetryAttempts: 0,
+            },
+          }),
+        ]),
+      });
+    });
+    
+    it('should export rollback Lambda ARN and name', () => {
+      const stack = new MonitoringAlertingStack(testApp, 'TestStack', {
+        config: testConfig,
+        codeBuildProject: mockCodeBuildProject,
+        lambdaFunction: mockLambdaFunction,
+        dynamoDBTable: mockDynamoDBTable,
+        cdPipeline: mockPipeline,
+        deploymentsTable: mockDeploymentsTable,
+      });
+      
+      const template = Template.fromStack(stack);
+      
+      // Verify outputs exist
+      template.hasOutput('RollbackLambdaArn', {
+        Description: 'ARN of the rollback Lambda function',
+        Export: {
+          Name: Match.stringLikeRegexp('.*RollbackLambdaArn'),
+        },
+      });
+      
+      template.hasOutput('RollbackLambdaName', {
+        Description: 'Name of the rollback Lambda function',
+      });
+    });
+    
+    it('should not create rollback Lambda when CD pipeline is not provided', () => {
+      const stack = new MonitoringAlertingStack(testApp, 'TestStack', {
+        config: testConfig,
+        codeBuildProject: mockCodeBuildProject,
+        lambdaFunction: mockLambdaFunction,
+        dynamoDBTable: mockDynamoDBTable,
+      });
+      
+      const template = Template.fromStack(stack);
+      
+      // Verify rollback Lambda not created
+      expect(stack.rollbackLambda).toBeUndefined();
+      
+      // Verify no Lambda function with rollback name
+      const lambdaFunctions = template.findResources('AWS::Lambda::Function', {
+        Properties: {
+          FunctionName: 'kiro-pipeline-test-rollback',
+        },
+      });
+      
+      expect(Object.keys(lambdaFunctions).length).toBe(0);
+    });
+  });

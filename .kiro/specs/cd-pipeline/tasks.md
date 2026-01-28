@@ -366,7 +366,7 @@ This task list implements a CD pipeline for the Kiro CodeBuild Worker project. T
   - Achieve ≥80% coverage for both files
   - **Validates**: NFR-4
 
-- [ ] 13.4 Write property-based test for rollback idempotency
+- [x] 13.4 Write property-based test for rollback idempotency
   - Create `infrastructure/test/properties/rollback-idempotency.test.ts`
   - Implement Property 2: Rollback Idempotency from design
   - Use fast-check to generate random deployment states

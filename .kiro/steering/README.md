@@ -4,6 +4,90 @@
 
 This directory contains steering documentation that guides development practices, coding standards, and workflows for the Kiro CodeBuild Worker project. All developers MUST read and follow these guidelines.
 
+## Important: Agent Capabilities and Permissions
+
+**CRITICAL**: All running agents have built-in capabilities for file operations and command execution. Before requesting permission to run a command, verify that you already have the necessary permissions.
+
+### File Operations You Already Have
+
+Agents have **direct file access** through built-in tools:
+- ✅ **Reading files**: Use `readFile` or `readMultipleFiles` tools
+- ✅ **Writing files**: Use `fsWrite` tool to create or overwrite files
+- ✅ **Appending to files**: Use `fsAppend` tool to add content
+- ✅ **Replacing text**: Use `strReplace` tool for targeted edits
+- ✅ **Deleting files**: Use `deleteFile` tool
+- ✅ **Searching files**: Use `grepSearch` and `fileSearch` tools
+
+### Commands You Should NOT Request Permission For
+
+The following operations are **already available** through file tools and do NOT require bash commands:
+- ❌ **`cat`** - Use `readFile` instead
+- ❌ **`sed`** - Use `strReplace` instead
+- ❌ **`echo >>`** - Use `fsAppend` instead
+- ❌ **`echo >`** - Use `fsWrite` instead
+- ❌ **`grep`** - Use `grepSearch` instead
+- ❌ **`find`** - Use `fileSearch` instead
+- ❌ **`mkdir`** - Directories are created automatically by `fsWrite`
+- ❌ **`cp`** - Read with `readFile` and write with `fsWrite`
+
+### Commands You CAN Execute Directly
+
+Agents have permission to execute these commands without asking:
+- ✅ **`npm`** commands (install, test, build, run)
+- ✅ **`git`** commands (status, log, diff)
+- ✅ **`cdk`** commands (synth, deploy, diff, destroy)
+- ✅ **Test runners** (vitest, jest)
+- ✅ **Linters** (eslint, tslint)
+- ✅ **Build tools** (tsc, webpack)
+
+### Best Practices for File Operations
+
+1. **Use the right tool for the job**:
+   - Small edits → `strReplace`
+   - New files → `fsWrite`
+   - Adding content → `fsAppend`
+   - Reading → `readFile` or `readMultipleFiles`
+
+2. **Avoid unnecessary bash commands**:
+   - Don't use `cat file.txt` when you can use `readFile`
+   - Don't use `sed` when you can use `strReplace`
+   - Don't use `echo "text" >> file` when you can use `fsAppend`
+
+3. **Work efficiently**:
+   - Read multiple files at once with `readMultipleFiles`
+   - Use `strReplace` for precise edits instead of rewriting entire files
+   - Use `grepSearch` to find text across files quickly
+
+### Example: Wrong vs Right Approach
+
+**❌ WRONG** (requesting unnecessary permissions):
+```
+Can I run: cat file.txt
+Can I run: sed -i 's/old/new/g' file.txt
+Can I run: echo "text" >> file.txt
+```
+
+**✅ RIGHT** (using available tools):
+```typescript
+// Read file
+readFile({ path: "file.txt", explanation: "Reading file content" })
+
+// Replace text
+strReplace({ 
+  path: "file.txt", 
+  oldStr: "old text", 
+  newStr: "new text" 
+})
+
+// Append text
+fsAppend({ 
+  path: "file.txt", 
+  text: "new content" 
+})
+```
+
+**Remember**: You have powerful file manipulation tools built-in. Use them instead of requesting bash command permissions that will be denied.
+
 ## Steering Files
 
 ### 1. Project Overview
