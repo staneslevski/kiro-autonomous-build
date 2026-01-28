@@ -1065,10 +1065,10 @@ describe('MonitoringAlertingStack', () => {
     
     it('should grant Lambda permissions to read from deployments table', () => {
       const stack = new MonitoringAlertingStack(testApp, 'TestStack', {
-        config: testConfig,
-        codeBuildProject: mockCodeBuildProject,
-        lambdaFunction: mockLambdaFunction,
-        dynamoDBTable: mockDynamoDBTable,
+        config: localTestConfig,
+        codeBuildProject: localMockCodeBuildProject,
+        lambdaFunction: localMockLambdaFunction,
+        dynamoDBTable: localMockDynamoDBTable,
         cdPipeline: mockPipeline,
         deploymentsTable: mockDeploymentsTable,
       });
@@ -1099,10 +1099,10 @@ describe('MonitoringAlertingStack', () => {
     
     it('should grant Lambda permissions for CodePipeline operations', () => {
       const stack = new MonitoringAlertingStack(testApp, 'TestStack', {
-        config: testConfig,
-        codeBuildProject: mockCodeBuildProject,
-        lambdaFunction: mockLambdaFunction,
-        dynamoDBTable: mockDynamoDBTable,
+        config: localTestConfig,
+        codeBuildProject: localMockCodeBuildProject,
+        lambdaFunction: localMockLambdaFunction,
+        dynamoDBTable: localMockDynamoDBTable,
         cdPipeline: mockPipeline,
         deploymentsTable: mockDeploymentsTable,
       });
