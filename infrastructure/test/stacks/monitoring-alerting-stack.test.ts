@@ -970,6 +970,7 @@ describe('MonitoringAlertingStack', () => {
       
       // Create mock pipeline
       const sourceOutput = new codepipeline.Artifact();
+      const buildOutput = new codepipeline.Artifact();
       mockPipeline = new codepipeline.Pipeline(mockStack, 'MockPipeline', {
         pipelineName: 'test-pipeline',
         stages: [
@@ -982,6 +983,17 @@ describe('MonitoringAlertingStack', () => {
                 repo: 'test-repo',
                 oauthToken: cdk.SecretValue.unsafePlainText('test-token'),
                 output: sourceOutput,
+              }),
+            ],
+          },
+          {
+            stageName: 'Build',
+            actions: [
+              new codepipeline_actions.CodeBuildAction({
+                actionName: 'Build',
+                project: localMockCodeBuildProject,
+                input: sourceOutput,
+                outputs: [buildOutput],
               }),
             ],
           },
@@ -1189,10 +1201,10 @@ describe('MonitoringAlertingStack', () => {
     
     it('should create EventBridge rule for CD pipeline alarms', () => {
       const stack = new MonitoringAlertingStack(testApp, 'TestStack', {
-        config: testConfig,
-        codeBuildProject: mockCodeBuildProject,
-        lambdaFunction: mockLambdaFunction,
-        dynamoDBTable: mockDynamoDBTable,
+        config: localTestConfig,
+        codeBuildProject: localMockCodeBuildProject,
+        lambdaFunction: localMockLambdaFunction,
+        dynamoDBTable: localMockDynamoDBTable,
         cdPipeline: mockPipeline,
         deploymentsTable: mockDeploymentsTable,
       });
@@ -1222,10 +1234,10 @@ describe('MonitoringAlertingStack', () => {
     
     it('should add rollback Lambda as EventBridge rule target', () => {
       const stack = new MonitoringAlertingStack(testApp, 'TestStack', {
-        config: testConfig,
-        codeBuildProject: mockCodeBuildProject,
-        lambdaFunction: mockLambdaFunction,
-        dynamoDBTable: mockDynamoDBTable,
+        config: localTestConfig,
+        codeBuildProject: localMockCodeBuildProject,
+        lambdaFunction: localMockLambdaFunction,
+        dynamoDBTable: localMockDynamoDBTable,
         cdPipeline: mockPipeline,
         deploymentsTable: mockDeploymentsTable,
       });
@@ -1247,10 +1259,10 @@ describe('MonitoringAlertingStack', () => {
     
     it('should export rollback Lambda ARN and name', () => {
       const stack = new MonitoringAlertingStack(testApp, 'TestStack', {
-        config: testConfig,
-        codeBuildProject: mockCodeBuildProject,
-        lambdaFunction: mockLambdaFunction,
-        dynamoDBTable: mockDynamoDBTable,
+        config: localTestConfig,
+        codeBuildProject: localMockCodeBuildProject,
+        lambdaFunction: localMockLambdaFunction,
+        dynamoDBTable: localMockDynamoDBTable,
         cdPipeline: mockPipeline,
         deploymentsTable: mockDeploymentsTable,
       });
@@ -1272,10 +1284,10 @@ describe('MonitoringAlertingStack', () => {
     
     it('should not create rollback Lambda when CD pipeline is not provided', () => {
       const stack = new MonitoringAlertingStack(testApp, 'TestStack', {
-        config: testConfig,
-        codeBuildProject: mockCodeBuildProject,
-        lambdaFunction: mockLambdaFunction,
-        dynamoDBTable: mockDynamoDBTable,
+        config: localTestConfig,
+        codeBuildProject: localMockCodeBuildProject,
+        lambdaFunction: localMockLambdaFunction,
+        dynamoDBTable: localMockDynamoDBTable,
       });
       
       const template = Template.fromStack(stack);

@@ -323,7 +323,7 @@ This task list implements a CD pipeline for the Kiro CodeBuild Worker project. T
 ## Phase 5: Automated Rollback System
 
 ### 13. Rollback Orchestrator and Validator Components
-- [ ] 13.1 Create `infrastructure/lib/components/rollback-orchestrator.ts`
+- [x] 13.1 Create `infrastructure/lib/components/rollback-orchestrator.ts`
   - Import AWS SDK v3 clients (CodePipelineClient, SNSClient)
   - Import DeploymentStateManager and NotificationService
   - Implement `executeRollback()` method that orchestrates full rollback flow
@@ -336,7 +336,7 @@ This task list implements a CD pipeline for the Kiro CodeBuild Worker project. T
   - Return RollbackResult with success flag and level
   - **Validates**: Design Section 3.4, TR-6, US-5
 
-- [ ] 13.2 Create `infrastructure/lib/components/rollback-validator.ts`
+- [x] 13.2 Create `infrastructure/lib/components/rollback-validator.ts`
   - Import CloudWatch client and HealthCheckMonitor
   - Implement `validateRollback()` method that performs full validation
   - Implement alarm state checking (all alarms must be OK)
@@ -347,7 +347,7 @@ This task list implements a CD pipeline for the Kiro CodeBuild Worker project. T
   - Use structured logging for validation steps
   - **Validates**: Design Section 3.4.3, TR-6
 
-- [ ] 13.3 Write unit tests for Rollback Orchestrator and Validator
+- [x] 13.3 Write unit tests for Rollback Orchestrator and Validator
   - Create `infrastructure/test/components/rollback-orchestrator.test.ts`
   - Test executeRollback performs stage-level rollback first
   - Test executeRollback falls back to full rollback when stage rollback fails
@@ -376,7 +376,7 @@ This task list implements a CD pipeline for the Kiro CodeBuild Worker project. T
   - **Validates**: Design Section 12, Property 2
 
 ### 14. Rollback Lambda Function and EventBridge Integration
-- [ ] 14.1 Create `infrastructure/lib/lambda/rollback-handler.ts`
+- [x] 14.1 Create `infrastructure/lib/lambda/rollback-handler.ts`
   - Implement Lambda handler function that processes EventBridge events
   - Implement `AlarmEventProcessor` class with processAlarmEvent method
   - Parse CloudWatch alarm event from EventBridge
@@ -388,7 +388,7 @@ This task list implements a CD pipeline for the Kiro CodeBuild Worker project. T
   - Return success/failure response
   - **Validates**: Design Section 5.1, TR-6, US-5
 
-- [ ] 14.2 Add rollback Lambda and EventBridge rule to Monitoring Stack
+- [x] 14.2 Add rollback Lambda and EventBridge rule to Monitoring Stack
   - Update `infrastructure/lib/stacks/monitoring-alerting-stack.ts`
   - Create Lambda function with rollback-handler code
   - Configure IAM role with permissions (codepipeline:*, dynamodb:*, sns:Publish, logs:*)
@@ -400,7 +400,7 @@ This task list implements a CD pipeline for the Kiro CodeBuild Worker project. T
   - Add rollback Lambda as target
   - **Validates**: TR-5, TR-6, US-4, US-5, NFR-2
 
-- [ ] 14.3 Write unit tests for Rollback Lambda and EventBridge integration
+- [x] 14.3 Write unit tests for Rollback Lambda and EventBridge integration
   - Create `infrastructure/test/lambda/rollback-handler.test.ts`
   - Test handler processes alarm events correctly
   - Test AlarmEventProcessor filters deployment-related alarms
@@ -421,7 +421,7 @@ This task list implements a CD pipeline for the Kiro CodeBuild Worker project. T
 ## Phase 6: Notification System and Error Handling
 
 ### 15. Notification Service Component
-- [ ] 15.1 Create `infrastructure/lib/components/notification-service.ts`
+- [x] 15.1 Create `infrastructure/lib/components/notification-service.ts`
   - Import AWS SDK v3 SNS client (SNSClient, PublishCommand)
   - Implement `notifyDeploymentStart()`, `notifyDeploymentSuccess()`, `notifyDeploymentFailure()` methods
   - Implement `notifyRollbackInitiated()`, `notifyRollbackSuccess()`, `notifyRollbackFailure()` methods
@@ -429,7 +429,7 @@ This task list implements a CD pipeline for the Kiro CodeBuild Worker project. T
   - Handle SNS publish errors gracefully (log but don't fail)
   - **Validates**: Design Section 3.6, US-6
 
-- [ ] 15.2 Write unit tests and property-based test for Notification Service
+- [x] 15.2 Write unit tests and property-based test for Notification Service
   - Create `infrastructure/test/components/notification-service.test.ts`
   - Test all 6 notification methods send correct message format
   - Test all messages are valid JSON with required fields
@@ -443,7 +443,7 @@ This task list implements a CD pipeline for the Kiro CodeBuild Worker project. T
   - **Validates**: Design Section 12, Property 7, NFR-4
 
 ### 16. Custom Error Classes and Utilities
-- [ ] 16.1 Create custom error classes in `infrastructure/lib/errors/` directory
+- [x] 16.1 Create custom error classes in `infrastructure/lib/errors/` directory
   - Create `infrastructure/lib/errors/pipeline-error.ts` (PipelineError with stage and cause properties)
   - Create `infrastructure/lib/errors/rollback-error.ts` (RollbackError with deployment and cause properties)
   - Create `infrastructure/lib/errors/health-check-error.ts` (HealthCheckError with failedAlarms and cause properties)
@@ -451,13 +451,13 @@ This task list implements a CD pipeline for the Kiro CodeBuild Worker project. T
   - Create `infrastructure/lib/errors/index.ts` to export all errors
   - **Validates**: Design Section 6.1
 
-- [ ] 16.2 Create utility functions in `infrastructure/lib/utils/` directory
+- [x] 16.2 Create utility functions in `infrastructure/lib/utils/` directory
   - Create `infrastructure/lib/utils/structured-logger.ts` (StructuredLogger class with log(), info(), error(), warn() methods outputting JSON)
   - Create `infrastructure/lib/utils/retry.ts` (retry() function with exponential backoff, defaults: maxAttempts=3, initialDelay=1000ms, maxDelay=10000ms, multiplier=2)
   - Create `infrastructure/lib/utils/index.ts` to export utilities
   - **Validates**: Design Section 9.4, Design Section 6.2, NFR-1, NFR-3
 
-- [ ] 16.3 Write unit tests for errors and utilities
+- [x] 16.3 Write unit tests for errors and utilities
   - Create `infrastructure/test/errors/custom-errors.test.ts`
   - Test all 4 error classes instantiation with properties
   - Test error name, message, and inheritance from Error
