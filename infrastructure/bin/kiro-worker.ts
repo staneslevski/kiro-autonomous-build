@@ -18,6 +18,8 @@
  *   3. WorkItemPollerStack (Lambda, EventBridge)
  *   4. CodeBuildProjectsStack (CodeBuild projects)
  *   5. MonitoringAlertingStack (CloudWatch Alarms, SNS)
+ *   6. CDPipelineCoreStack (CD Pipeline S3, DynamoDB, KMS, CloudWatch) - if pipelineEnabled
+ *   7. CDPipelineStack (CodePipeline, CodeBuild projects for CD) - if pipelineEnabled
  */
 
 import * as cdk from 'aws-cdk-lib';
@@ -27,6 +29,8 @@ import { SecretsConfigurationStack } from '../lib/stacks/secrets-configuration-s
 import { WorkItemPollerStack } from '../lib/stacks/work-item-poller-stack';
 import { CodeBuildProjectsStack } from '../lib/stacks/codebuild-projects-stack';
 import { MonitoringAlertingStack } from '../lib/stacks/monitoring-alerting-stack';
+import { CDPipelineCoreStack } from '../lib/stacks/cd-pipeline-core-stack';
+import { CDPipelineStack } from '../lib/stacks/cd-pipeline-stack';
 
 // Create CDK app
 const app = new cdk.App();
@@ -110,6 +114,34 @@ const monitoringStack = new MonitoringAlertingStack(app, `${stackPrefix}-Monitor
 // Add dependencies
 monitoringStack.addDependency(codeBuildStack);
 monitoringStack.addDependency(pollerStack);
+
+// CD Pipeline Stacks (only if pipeline is enabled for this environment)
+if (config.pipelineEnabled) {
+  // 6. CD Pipeline Core Infrastructure Stack
+  const cdPipelineCoreStack = new CDPipelineCoreStack(app, `kiro-pipeline-${config.environment}-core`, {
+    env: stackEnv,
+    description: `CD Pipeline core infrastructure for Kiro Worker (${config.environment})`,
+    environment: config.environment,
+  });
+  
+  // 7. CD Pipeline Stack
+  const cdPipelineStack = new CDPipelineStack(app, `kiro-pipeline-${config.environment}`, {
+    env: stackEnv,
+    description: `CD Pipeline for Kiro Worker (${config.environment})`,
+    environment: config.environment,
+    artifactsBucket: cdPipelineCoreStack.artifactsBucket,
+    githubOwner: config.githubOwner || 'kiro-org',
+    githubRepo: config.githubRepo || 'kiro-codebuild-worker',
+    githubBranch: 'main',
+  });
+  
+  // Add dependency
+  cdPipelineStack.addDependency(cdPipelineCoreStack);
+  
+  // Add CD Pipeline tags
+  cdk.Tags.of(cdPipelineCoreStack).add('Feature', 'CDPipeline');
+  cdk.Tags.of(cdPipelineStack).add('Feature', 'CDPipeline');
+}
 
 // Add tags to all resources in the app
 cdk.Tags.of(app).add('Project', 'KiroWorker');

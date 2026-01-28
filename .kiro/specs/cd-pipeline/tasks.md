@@ -544,7 +544,7 @@ This task list implements a CD pipeline for the Kiro CodeBuild Worker project. T
 ## Phase 8: Deployment Configuration and Scripts
 
 ### 19. CDK App Entry Point and Configuration
-- [ ] 19.1 Update CDK app entry point for CD pipeline stacks
+- [x] 19.1 Update CDK app entry point for CD pipeline stacks
   - Update `infrastructure/bin/kiro-worker.ts` (or create cd-pipeline.ts if separate)
   - Initialize CDK app and load environment from context
   - Instantiate CD Pipeline Core Infrastructure Stack
@@ -555,7 +555,7 @@ This task list implements a CD pipeline for the Kiro CodeBuild Worker project. T
   - Call app.synth()
   - **Validates**: TR-1, TR-2
 
-- [ ] 19.2 Verify and update cdk.json if needed
+- [x] 19.2 Verify and update cdk.json if needed
   - Verify app entry point configuration points to correct file
   - Verify context parameters (environment, account, region)
   - Verify feature flags (@aws-cdk/core:enableStackNameDuplicates: false, stackRelativeExports: true)
@@ -563,7 +563,7 @@ This task list implements a CD pipeline for the Kiro CodeBuild Worker project. T
   - **Validates**: TR-1
 
 ### 20. Deployment and Validation Scripts
-- [ ] 20.1 Create deployment script `infrastructure/deploy-pipeline.sh`
+- [x] 20.1 Create deployment script `infrastructure/deploy-pipeline.sh`
   - Add shebang (#!/bin/bash) and set -e for error handling
   - Implement environment validation (check ENVIRONMENT variable is test, staging, or production)
   - Implement CDK bootstrap check (verify account is bootstrapped)
@@ -574,7 +574,7 @@ This task list implements a CD pipeline for the Kiro CodeBuild Worker project. T
   - Make script executable (chmod +x)
   - **Validates**: Design Section 8.1, NFR-4
 
-- [ ] 20.2 Create validation script `infrastructure/validate-deployment.sh`
+- [x] 20.2 Create validation script `infrastructure/validate-deployment.sh`
   - Add shebang and error handling
   - Implement pipeline existence check (aws codepipeline get-pipeline)
   - Implement CodeBuild projects check (list and verify all 5 projects exist)
@@ -586,7 +586,7 @@ This task list implements a CD pipeline for the Kiro CodeBuild Worker project. T
   - Exit with error code if any check fails
   - **Validates**: Design Section 8.3
 
-- [ ] 20.3 Create secrets setup script `infrastructure/scripts/setup-secrets.sh`
+- [x] 20.3 Create secrets setup script `infrastructure/scripts/setup-secrets.sh`
   - Add shebang and error handling
   - Create GitHub token secret placeholder in Secrets Manager (kiro-pipeline-{env}-github-token)
   - Create Slack webhook secret placeholder (optional, kiro-pipeline-{env}-slack-webhook)
@@ -595,7 +595,7 @@ This task list implements a CD pipeline for the Kiro CodeBuild Worker project. T
   - Check if secrets already exist before creating
   - **Validates**: TR-2, NFR-2
 
-- [ ] 20.4 Create parameters setup script `infrastructure/scripts/setup-parameters.sh`
+- [x] 20.4 Create parameters setup script `infrastructure/scripts/setup-parameters.sh`
   - Add shebang and error handling
   - Create GitHub owner parameter in Systems Manager Parameter Store (/kiro-pipeline/{env}/github-owner)
   - Create GitHub repo parameter (/kiro-pipeline/{env}/github-repo)

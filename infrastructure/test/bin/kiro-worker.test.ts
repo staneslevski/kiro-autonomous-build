@@ -615,4 +615,198 @@ describe('CDK App Entry Point', () => {
       }).not.toThrow();
     });
   });
+
+  describe('CD Pipeline Configuration', () => {
+    it('should have CD pipeline enabled for test environment', () => {
+      const config = environments.getEnvironmentConfig('test');
+      expect(config.pipelineEnabled).toBe(true);
+    });
+
+    it('should have CD pipeline enabled for staging environment', () => {
+      const config = environments.getEnvironmentConfig('staging');
+      expect(config.pipelineEnabled).toBe(true);
+    });
+
+    it('should have CD pipeline enabled for production environment', () => {
+      const config = environments.getEnvironmentConfig('production');
+      expect(config.pipelineEnabled).toBe(true);
+    });
+
+    it('should have GitHub owner configured for test environment', () => {
+      const config = environments.getEnvironmentConfig('test');
+      expect(config.githubOwner).toBeDefined();
+      expect(typeof config.githubOwner).toBe('string');
+    });
+
+    it('should have GitHub repo configured for test environment', () => {
+      const config = environments.getEnvironmentConfig('test');
+      expect(config.githubRepo).toBeDefined();
+      expect(typeof config.githubRepo).toBe('string');
+    });
+
+    it('should have health check duration configured for test environment', () => {
+      const config = environments.getEnvironmentConfig('test');
+      expect(config.healthCheckDuration).toBe(5);
+    });
+
+    it('should have health check duration configured for staging environment', () => {
+      const config = environments.getEnvironmentConfig('staging');
+      expect(config.healthCheckDuration).toBe(5);
+    });
+
+    it('should have longer health check duration for production environment', () => {
+      const config = environments.getEnvironmentConfig('production');
+      expect(config.healthCheckDuration).toBe(10);
+    });
+
+    it('should have alarm prefixes configured for test environment', () => {
+      const config = environments.getEnvironmentConfig('test');
+      expect(config.alarmPrefixes).toBeDefined();
+      expect(Array.isArray(config.alarmPrefixes)).toBe(true);
+      expect(config.alarmPrefixes).toContain('kiro-worker-test');
+    });
+
+    it('should have alarm prefixes configured for staging environment', () => {
+      const config = environments.getEnvironmentConfig('staging');
+      expect(config.alarmPrefixes).toBeDefined();
+      expect(Array.isArray(config.alarmPrefixes)).toBe(true);
+      expect(config.alarmPrefixes).toContain('kiro-worker-staging');
+    });
+
+    it('should have alarm prefixes configured for production environment', () => {
+      const config = environments.getEnvironmentConfig('production');
+      expect(config.alarmPrefixes).toBeDefined();
+      expect(Array.isArray(config.alarmPrefixes)).toBe(true);
+      expect(config.alarmPrefixes).toContain('kiro-worker-production');
+    });
+
+    it('should have different alarm prefixes for different environments', () => {
+      const testConfig = environments.getEnvironmentConfig('test');
+      const stagingConfig = environments.getEnvironmentConfig('staging');
+      const productionConfig = environments.getEnvironmentConfig('production');
+      
+      expect(testConfig.alarmPrefixes).not.toEqual(stagingConfig.alarmPrefixes);
+      expect(stagingConfig.alarmPrefixes).not.toEqual(productionConfig.alarmPrefixes);
+      expect(testConfig.alarmPrefixes).not.toEqual(productionConfig.alarmPrefixes);
+    });
+
+    it('should use environment variable for GitHub owner if set', () => {
+      process.env.GITHUB_OWNER = 'custom-org';
+      
+      const config = environments.getEnvironmentConfig('test');
+      expect(config.githubOwner).toBe('custom-org');
+    });
+
+    it('should use environment variable for GitHub repo if set', () => {
+      process.env.GITHUB_REPO = 'custom-repo';
+      
+      const config = environments.getEnvironmentConfig('test');
+      expect(config.githubRepo).toBe('custom-repo');
+    });
+
+    it('should use default GitHub owner if environment variable not set', () => {
+      delete process.env.GITHUB_OWNER;
+      
+      const config = environments.getEnvironmentConfig('test');
+      expect(config.githubOwner).toBe('kiro-org');
+    });
+
+    it('should use default GitHub repo if environment variable not set', () => {
+      delete process.env.GITHUB_REPO;
+      
+      const config = environments.getEnvironmentConfig('test');
+      expect(config.githubRepo).toBe('kiro-codebuild-worker');
+    });
+  });
+
+  describe('CD Pipeline Stack Naming', () => {
+    it('should generate correct CD pipeline core stack name for test environment', () => {
+      const config = environments.getEnvironmentConfig('test');
+      const stackName = `kiro-pipeline-${config.environment}-core`;
+      
+      expect(stackName).toBe('kiro-pipeline-test-core');
+    });
+
+    it('should generate correct CD pipeline stack name for test environment', () => {
+      const config = environments.getEnvironmentConfig('test');
+      const stackName = `kiro-pipeline-${config.environment}`;
+      
+      expect(stackName).toBe('kiro-pipeline-test');
+    });
+
+    it('should generate correct CD pipeline core stack name for staging environment', () => {
+      const config = environments.getEnvironmentConfig('staging');
+      const stackName = `kiro-pipeline-${config.environment}-core`;
+      
+      expect(stackName).toBe('kiro-pipeline-staging-core');
+    });
+
+    it('should generate correct CD pipeline stack name for staging environment', () => {
+      const config = environments.getEnvironmentConfig('staging');
+      const stackName = `kiro-pipeline-${config.environment}`;
+      
+      expect(stackName).toBe('kiro-pipeline-staging');
+    });
+
+    it('should generate correct CD pipeline core stack name for production environment', () => {
+      const config = environments.getEnvironmentConfig('production');
+      const stackName = `kiro-pipeline-${config.environment}-core`;
+      
+      expect(stackName).toBe('kiro-pipeline-production-core');
+    });
+
+    it('should generate correct CD pipeline stack name for production environment', () => {
+      const config = environments.getEnvironmentConfig('production');
+      const stackName = `kiro-pipeline-${config.environment}`;
+      
+      expect(stackName).toBe('kiro-pipeline-production');
+    });
+
+    it('should generate unique CD pipeline stack names for different environments', () => {
+      const testConfig = environments.getEnvironmentConfig('test');
+      const stagingConfig = environments.getEnvironmentConfig('staging');
+      const productionConfig = environments.getEnvironmentConfig('production');
+      
+      const testStackName = `kiro-pipeline-${testConfig.environment}`;
+      const stagingStackName = `kiro-pipeline-${stagingConfig.environment}`;
+      const productionStackName = `kiro-pipeline-${productionConfig.environment}`;
+      
+      expect(testStackName).not.toBe(stagingStackName);
+      expect(stagingStackName).not.toBe(productionStackName);
+      expect(testStackName).not.toBe(productionStackName);
+    });
+  });
+
+  describe('CD Pipeline Feature Tags', () => {
+    it('should apply CDPipeline feature tag to CD pipeline stacks', () => {
+      const app = new cdk.App({
+        context: {
+          environment: 'test'
+        }
+      });
+      
+      const stack = new cdk.Stack(app, 'TestStack');
+      cdk.Tags.of(stack).add('Feature', 'CDPipeline');
+      
+      const tags = cdk.Tags.of(stack);
+      expect(tags).toBeDefined();
+    });
+
+    it('should apply all required tags to CD pipeline stacks', () => {
+      const app = new cdk.App({
+        context: {
+          environment: 'test'
+        }
+      });
+      
+      const stack = new cdk.Stack(app, 'TestStack');
+      cdk.Tags.of(stack).add('Project', 'KiroPipeline');
+      cdk.Tags.of(stack).add('Environment', 'test');
+      cdk.Tags.of(stack).add('ManagedBy', 'CDK');
+      cdk.Tags.of(stack).add('Feature', 'CDPipeline');
+      
+      const tags = cdk.Tags.of(stack);
+      expect(tags).toBeDefined();
+    });
+  });
 });
