@@ -1129,10 +1129,10 @@ describe('MonitoringAlertingStack', () => {
     
     it('should grant Lambda permissions for S3 artifacts access', () => {
       const stack = new MonitoringAlertingStack(testApp, 'TestStack', {
-        config: testConfig,
-        codeBuildProject: mockCodeBuildProject,
-        lambdaFunction: mockLambdaFunction,
-        dynamoDBTable: mockDynamoDBTable,
+        config: localTestConfig,
+        codeBuildProject: localMockCodeBuildProject,
+        lambdaFunction: localMockLambdaFunction,
+        dynamoDBTable: localMockDynamoDBTable,
         cdPipeline: mockPipeline,
         deploymentsTable: mockDeploymentsTable,
       });
@@ -1160,10 +1160,10 @@ describe('MonitoringAlertingStack', () => {
     
     it('should grant Lambda permissions for CloudWatch alarms', () => {
       const stack = new MonitoringAlertingStack(testApp, 'TestStack', {
-        config: testConfig,
-        codeBuildProject: mockCodeBuildProject,
-        lambdaFunction: mockLambdaFunction,
-        dynamoDBTable: mockDynamoDBTable,
+        config: localTestConfig,
+        codeBuildProject: localMockCodeBuildProject,
+        lambdaFunction: localMockLambdaFunction,
+        dynamoDBTable: localMockDynamoDBTable,
         cdPipeline: mockPipeline,
         deploymentsTable: mockDeploymentsTable,
       });
