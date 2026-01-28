@@ -479,7 +479,7 @@ This task list implements a CD pipeline for the Kiro CodeBuild Worker project. T
 ## Phase 7: Property-Based Tests and Integration Tests
 
 ### 17. Core Property-Based Tests
-- [ ] 17.1 Write property test for deployment ordering
+- [x] 17.1 Write property test for deployment ordering
   - Create `infrastructure/test/properties/deployment-ordering.test.ts`
   - Implement Property 1: Deployment Ordering from design
   - Use fast-check to generate random environment sequences
@@ -488,7 +488,7 @@ This task list implements a CD pipeline for the Kiro CodeBuild Worker project. T
   - Ensure property holds for all generated inputs
   - **Validates**: Design Section 12, Property 1, US-1
 
-- [ ] 17.2 Write property test for test coverage threshold
+- [x] 17.2 Write property test for test coverage threshold
   - Create `infrastructure/test/properties/coverage-threshold.test.ts`
   - Implement Property 3: Test Coverage Threshold from design
   - Use fast-check to generate random coverage percentages (0-100)
@@ -498,7 +498,7 @@ This task list implements a CD pipeline for the Kiro CodeBuild Worker project. T
   - Ensure property holds for all generated inputs
   - **Validates**: Design Section 12, Property 3, US-2
 
-- [ ] 17.3 Write property test for alarm-triggered rollback
+- [x] 17.3 Write property test for alarm-triggered rollback
   - Create `infrastructure/test/properties/alarm-rollback.test.ts`
   - Implement Property 4: Alarm-Triggered Rollback from design
   - Use fast-check to generate random alarm states
@@ -508,7 +508,7 @@ This task list implements a CD pipeline for the Kiro CodeBuild Worker project. T
   - Ensure property holds for all generated inputs
   - **Validates**: Design Section 12, Property 4, US-4
 
-- [ ] 17.4 Write property test for security scan blocking
+- [x] 17.4 Write property test for security scan blocking
   - Create `infrastructure/test/properties/security-blocking.test.ts`
   - Implement Property 5: Security Scan Blocking from design
   - Use fast-check to generate random vulnerability arrays
@@ -518,7 +518,7 @@ This task list implements a CD pipeline for the Kiro CodeBuild Worker project. T
   - Ensure property holds for all generated inputs
   - **Validates**: Design Section 12, Property 5, US-3
 
-- [ ] 17.5 Write property test for deployment state consistency
+- [x] 17.5 Write property test for deployment state consistency
   - Create `infrastructure/test/properties/state-consistency.test.ts`
   - Implement Property 6: Deployment State Consistency from design
   - Use fast-check to generate random deployment operations
@@ -528,7 +528,7 @@ This task list implements a CD pipeline for the Kiro CodeBuild Worker project. T
   - **Validates**: Design Section 12, Property 6, TR-6
 
 ### 18. Integration Tests
-- [ ] 18.1 Create pipeline integration test
+- [x] 18.1 Create pipeline integration test
   - Create `infrastructure/test/integration/pipeline-integration.test.ts`
   - Test full pipeline execution from source to production (mark with test.skip() for unit test runs)
   - Test pipeline with infrastructure changes (triggers CDK deploy)
